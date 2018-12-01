@@ -1,4 +1,4 @@
-package com.github.dschanoeh.homie_java;
+package io.github.dschanoeh.homie_java;
 
 import java.util.HashMap;
 import java.util.logging.Level;
