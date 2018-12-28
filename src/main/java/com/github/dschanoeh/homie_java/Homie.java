@@ -3,6 +3,7 @@ package com.github.dschanoeh.homie_java;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.util.logging.Logger;
@@ -73,6 +74,13 @@ public class Homie {
                             previousState = State.INIT;
                         }
                         if (connect()) {
+                            /* the first message we have to send is the init state */
+                            publish("$state", state.toString().toLowerCase(), true);
+
+                            sendAttributes();
+                            publishNodes();
+
+                            /* Finished reporting all attributes. Now we can transition to ready state */
                             state = State.READY;
                         } else {
                             state = State.DISCONNECTED;
@@ -80,8 +88,8 @@ public class Homie {
                         break;
                     case READY:
                         if (previousState != State.READY) {
+                            publish("$state", state.toString().toLowerCase(), true);
                             LOGGER.log(Level.INFO, "--> ready");
-                            onConnect();
                             previousState = State.READY;
                         }
                         if (!client.isConnected()) {
@@ -133,7 +141,11 @@ public class Homie {
             }
 
             client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID());
-            client.connect();
+            MqttConnectOptions options = new MqttConnectOptions();
+
+            /* Last will will be used in case of an ungraceful disconnect */
+            options.setWill(buildPath("$state"),State.LOST.toString().toLowerCase().getBytes(),1,true);
+            client.connect(options);
 
             if (statsTimer != null) {
                 statsTimer.cancel();
@@ -156,10 +168,13 @@ public class Homie {
         }
     }
 
+    private void publishStateUpdate() {
+        publish("$state", state.toString().toLowerCase(), true);
+    }
+
     private void sendAttributes() {
         publish("$homie", HOMIE_CONVENTION, true);
         publish("$name", configuration.getDeviceID(), true);
-        publish("$state", state.toString().toLowerCase(), true);
         publish("$implementation", IMPLEMENTATION, true);
         publish("$stats/interval", Integer.toString(configuration.getStatsInterval()), true);
         publish("$fw/name", firmwareName, true);
@@ -199,10 +214,6 @@ public class Homie {
         }
     }
 
-    private void onConnect() {
-        sendAttributes();
-        publishNodes();
-    }
 
     private void publishNodes() {
         String n = nodes.keySet().stream().collect(Collectors.joining(","));
@@ -229,6 +240,7 @@ public class Homie {
 
     private void disconnect() {
         try {
+            publish("$state", State.DISCONNECTED.toString().toLowerCase(), true);
             client.disconnect();
         } catch (MqttException e) {
             LOGGER.log(Level.INFO, "Failed to disconnect", e);
