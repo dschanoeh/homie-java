@@ -1,4 +1,4 @@
-package com.github.dschanoeh.homie_java;
+package io.github.dschanoeh.homie_java;
 
 public class Property {
 
