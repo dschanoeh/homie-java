@@ -75,7 +75,7 @@ public class Homie {
                         }
                         if (connect()) {
                             /* the first message we have to send is the init state */
-                            publish("$state", state.toString().toLowerCase(), true);
+                            publishStateUpdate();
 
                             sendAttributes();
                             publishNodes();
@@ -88,7 +88,7 @@ public class Homie {
                         break;
                     case READY:
                         if (previousState != State.READY) {
-                            publish("$state", state.toString().toLowerCase(), true);
+                            publishStateUpdate();
                             LOGGER.log(Level.INFO, "--> ready");
                             previousState = State.READY;
                         }
@@ -109,7 +109,7 @@ public class Homie {
                         break;
                 }
 
-                Thread.sleep(100);
+                Thread.sleep(50);
             }
         } catch (InterruptedException e) {
             LOGGER.log(Level.SEVERE, "State machine interrupted", e);
@@ -160,7 +160,7 @@ public class Homie {
                 }
             };
 
-            statsTimer.scheduleAtFixedRate(statsTask, 0, configuration.getStatsInterval());
+            statsTimer.scheduleAtFixedRate(statsTask, configuration.getStatsInterval(), configuration.getStatsInterval());
             return true;
         } catch (MqttException e) {
             LOGGER.log(Level.SEVERE, "Couldn't connect", e);
@@ -200,7 +200,7 @@ public class Homie {
      * Publish an MQTT message.
      */
     public void publish(String topic, String payload, Boolean retained) {
-        if (state == State.READY) {
+        if (client.isConnected()) {
             MqttMessage message = new MqttMessage();
             message.setRetained(retained);
             message.setPayload(payload.getBytes());
