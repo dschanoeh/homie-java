@@ -6,6 +6,8 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+
 import java.util.logging.Logger;
 import java.util.HashMap;
 import java.util.Timer;
@@ -140,7 +142,7 @@ public class Homie {
                 client.disconnect();
             }
 
-            client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID());
+            client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID(), new MemoryPersistence());
             MqttConnectOptions options = new MqttConnectOptions();
 
             /* Last will will be used in case of an ungraceful disconnect */
