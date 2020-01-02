@@ -29,25 +29,16 @@ public class Node {
     }
 
     /**
-     * Adds a property to the node.
+     * Adds a new property to the node or returns an existing property
+     * with the specified name.
      */
-    public Property advertiseProperty(String name) {
+    public Property getProperty(String name) {
         if (!properties.containsKey(name)) {
             Property p = new Property(this.homie, this, name);
             properties.put(name, p);
             return p;
         } else {
-            LOGGER.log(Level.WARNING, "Property {0} already advertised.", name);
-            return null;
-        }
-    }
-
-    public Property setProperty(String name) {
-        if (properties.containsKey(name)) {
             return properties.get(name);
-        } else {
-            LOGGER.log(Level.WARNING, "Property {0} doesn't exist.", name);
-            return null;
         }
     }
 

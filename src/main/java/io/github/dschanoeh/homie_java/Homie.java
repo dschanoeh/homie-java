@@ -2,10 +2,8 @@ package io.github.dschanoeh.homie_java;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.util.logging.Logger;
@@ -40,7 +38,9 @@ public class Homie {
     private Function<Void, String> cpuTemperatureFunction;
     private Function<Void, String> cpuLoadFunction;
 
-    HashMap<String, Node> nodes = new HashMap<>();
+    private HashMap<String, Node> nodes = new HashMap<>();
+    private HashMap<String, IMqttMessageListener> listeners = new HashMap<>();
+
 
     public State getState() {
         return state;
@@ -81,10 +81,12 @@ public class Homie {
 
                             sendAttributes();
                             publishNodes();
+                            subscribeListeners();
 
                             /* Finished reporting all attributes. Now we can transition to ready state */
                             state = State.READY;
                         } else {
+                            LOGGER.log(Level.INFO, "Connect failed...");
                             state = State.DISCONNECTED;
                         }
                         break;
@@ -134,6 +136,25 @@ public class Homie {
     public void setup() {
         stateMachineThread = new Thread(stateMachine);
         stateMachineThread.start();
+    }
+
+    protected void registerListener(String topic, IMqttMessageListener listener) {
+        listeners.put(topic, listener);
+    }
+
+    private void subscribeListeners() {
+        for (String topic : listeners.keySet()) {
+            IMqttMessageListener listener = listeners.get(topic);
+            try {
+                client.subscribe(buildPath(topic), listener);
+            } catch (MqttException ex) {
+                LOGGER.log(Level.WARNING, "Was not able to subscribe listener for topic " + topic, ex);
+            }
+        }
+    }
+
+    protected void deregisterListener(String topic) {
+        listeners.remove(topic);
     }
 
     private boolean connect() {
@@ -202,7 +223,7 @@ public class Homie {
      * Publish an MQTT message.
      */
     public void publish(String topic, String payload, Boolean retained) {
-        if (client.isConnected()) {
+        if (client != null && client.isConnected()) {
             MqttMessage message = new MqttMessage();
             message.setRetained(retained);
             message.setPayload(payload.getBytes());
@@ -237,13 +258,21 @@ public class Homie {
             LOGGER.log(Level.INFO, "Interrupted", e);
         }
         disconnect();
+
+        /* reset state variables so that a future re-initialization is possible */
+        previousState = State.DISCONNECTED;
+        state = State.INIT;
+        shutdownRequest = false;
+
         LOGGER.log(Level.INFO, "Terminating");
     }
 
     private void disconnect() {
         try {
-            publish("$state", State.DISCONNECTED.toString().toLowerCase(), true);
-            client.disconnect();
+            if(client.isConnected()) {
+                publish("$state", State.DISCONNECTED.toString().toLowerCase(), true);
+                client.disconnect();
+            }
         } catch (MqttException e) {
             LOGGER.log(Level.INFO, "Failed to disconnect", e);
         }
