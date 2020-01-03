@@ -13,6 +13,7 @@ public class MainTest {
     private static final String TEST_NODE = "TestNode";
     private static final String TEST_PROPERTY = "TestProperty";
     private static final String TEST_UNIT = "TestUnit";
+    private static final String TEST_NODE_TYPE = "TestNodeType";
 
     Homie homie;
     private MqttClient client;
@@ -84,7 +85,7 @@ public class MainTest {
 
     @Test
     void testNode() throws MqttException, InterruptedException {
-        final Boolean[] wasReceived = {false, false, false};
+        final Boolean[] wasReceived = {false, false, false, false};
 
         IMqttMessageListener unitListener = new IMqttMessageListener() {
             @Override
@@ -119,17 +120,31 @@ public class MainTest {
             }
         };
 
+        IMqttMessageListener nodeTypeListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                if(payload.equals(TEST_NODE_TYPE)) {
+                    wasReceived[3] = true;
+                }
+            }
+        };
+
         assert client.isConnected();
+        assert homie.getState() == Homie.State.INIT;
 
         String unitTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$unit";
         String datatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$datatype";
         String settableTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$settable";
+        String nodeTypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/$type";
 
         client.subscribe(unitTopic, unitListener);
         client.subscribe(datatypeTopic, datatypeListener);
         client.subscribe(settableTopic, settableListener);
+        client.subscribe(nodeTypeTopic, nodeTypeListener);
 
-        Node node = homie.createNode(TEST_NODE, "String");
+        Node node = homie.createNode(TEST_NODE, TEST_NODE_TYPE);
         Property property = node.getProperty(TEST_PROPERTY);
         property.setUnit(TEST_UNIT);
         property.setDataType(Property.DataType.FLOAT);
@@ -143,6 +158,7 @@ public class MainTest {
         assert wasReceived[0];
         assert wasReceived[1];
         assert wasReceived[2];
+        assert wasReceived[3];
     }
 
     @Test

@@ -55,8 +55,8 @@ public class Node {
      * Advertise supported properties
      */
     private void sendProperties() {
-        homie.publish("$type", type, true);
+        homie.publish(this.getName() + "/" + "$type", type, true);
         String p = properties.keySet().stream().collect(Collectors.joining(","));
-        homie.publish("$properties", p, true);
+        homie.publish(this.getName() + "/"+ "$properties", p, true);
     }
 }
