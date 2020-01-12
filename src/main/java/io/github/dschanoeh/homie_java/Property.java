@@ -98,7 +98,7 @@ public class Property {
     }
 
     public void send(String value) {
-        if(this.dataType != DataType.BOOLEAN) {
+        if(this.dataType != DataType.STRING) {
             throw new UnsupportedOperationException("Trying to send String value but property type is " + this.dataType.toString());
         }
 
