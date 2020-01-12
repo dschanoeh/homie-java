@@ -67,8 +67,14 @@ public class Node {
      */
     private void sendProperties() {
         homie.publish(this.getID() + "/" + "$type", type, true);
-        String p = String.join(",", properties.keySet());
-        homie.publish(this.getID() + "/"+ "$properties", p, true);
+
+        if(properties.size() > 0) {
+            String p = String.join(",", properties.keySet());
+            homie.publish(this.getID() + "/" + "$properties", p, true);
+        } else {
+            homie.publish(this.getID() + "/" + "$properties", "", true);
+        }
+
         homie.publish(this.getID() + "/" + "$name", this.getName(), true);
     }
 }

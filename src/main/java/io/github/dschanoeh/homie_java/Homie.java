@@ -242,10 +242,14 @@ public class Homie {
     }
 
     private void publishNodes() {
-        String n = String.join(",", nodes.keySet());
-        publish("$nodes", n, true);
+        if(nodes.size() > 0) {
+            String n = String.join(",", nodes.keySet());
+            publish("$nodes", n, true);
 
-        nodes.forEach((key, value) -> value.onConnect());
+            nodes.forEach((key, value) -> value.onConnect());
+        } else {
+            publish("$nodes", "", true);
+        }
     }
 
     private String buildPath(String attribute) {
