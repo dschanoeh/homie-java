@@ -1,5 +1,6 @@
 plugins {
-    id 'java-library'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 repositories {
@@ -16,8 +17,13 @@ test {
     useJUnitPlatform()
 }
 
+shadowJar {
+    archiveVersion = '1.0-SNAPSHOT'
+    archiveClassifier = ''
+    archiveBaseName = 'homie-java'
+}
+
 group = 'io.github.dschanoeh'
-version = '1.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
