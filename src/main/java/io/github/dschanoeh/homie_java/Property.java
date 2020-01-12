@@ -135,6 +135,21 @@ public class Property {
         homie.publish(buildPath(""), s, this.isRetained());
     }
 
+    public void send(Double value, Integer precision) {
+        if(this.dataType != DataType.FLOAT) {
+            throw new UnsupportedOperationException("Trying to send Float value but property type is " + this.dataType.toString());
+        }
+        if(value.isInfinite() || value.isNaN()) {
+            throw new IllegalArgumentException("NaN and infinity values are not supported");
+        }
+        if(precision < 0) {
+            throw new IllegalArgumentException("Precision cannot be negative");
+        }
+
+        String s = String.format("%." + String.valueOf(precision) + "f", value);
+        homie.publish(buildPath(""), s, this.isRetained());
+    }
+
     protected void onConnect() {
         if (!"".equals(unit)) {
             homie.publish(buildPath("/$unit"), unit, true);
