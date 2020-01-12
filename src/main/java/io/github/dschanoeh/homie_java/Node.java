@@ -7,7 +7,7 @@ public class Node {
 
     private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 
-    private String name;
+    private String name = "";
     private final String type;
     private final String id;
     private final Homie homie;
@@ -32,7 +32,9 @@ public class Node {
     }
 
     public void setName(String name) {
-        this.name = name;
+        if(name != null) {
+            this.name = name;
+        }
     }
 
     /**
