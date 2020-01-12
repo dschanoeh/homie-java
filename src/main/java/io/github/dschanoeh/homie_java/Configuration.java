@@ -4,7 +4,7 @@ public class Configuration {
 
     private String deviceID;
     private String brokerUrl;
-    private String deviceTopic = "homie";
+    private String baseTopic = "homie";
     private Integer statsInterval = 10000;
     private Integer disconnectRetry = 2000;
 
@@ -13,6 +13,9 @@ public class Configuration {
     }
 
     public void setDeviceID(String name) {
+        if(!Homie.isValidTopicID(name)) {
+            throw new IllegalArgumentException("Device ID doesn't match homie's allowed topic ID pattern");
+        }
         this.deviceID = name;
     }
 
@@ -24,12 +27,16 @@ public class Configuration {
         this.brokerUrl = brokerUrl;
     }
 
-    public String getDeviceTopic() {
-        return deviceTopic;
+    public String getBaseTopic() {
+        return baseTopic;
     }
 
-    public void setDeviceTopic(String deviceTopic) {
-        this.deviceTopic = deviceTopic;
+    public void setBaseTopic(String baseTopic) {
+        if(!Homie.isValidTopicID(baseTopic)) {
+            throw new IllegalArgumentException("Device ID doesn't match homie's allowed topic ID pattern");
+        }
+
+        this.baseTopic = baseTopic;
     }
 
     public Integer getStatsInterval() {

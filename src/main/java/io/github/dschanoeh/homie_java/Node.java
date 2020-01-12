@@ -33,6 +33,10 @@ public class Node {
      * with the specified name.
      */
     public Property getProperty(String name) {
+        if(!Homie.isValidTopicID(name)) {
+            throw new IllegalArgumentException("Property name doesn't match homie's allowed topic ID pattern");
+        }
+
         if (!properties.containsKey(name)) {
             Property p = new Property(this.homie, this, name);
             properties.put(name, p);

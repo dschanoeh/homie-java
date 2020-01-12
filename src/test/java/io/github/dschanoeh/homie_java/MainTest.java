@@ -8,12 +8,12 @@ public class MainTest {
 
     private static final String FIRMWARE_NAME = "TestFirmware";
     private static final String FIRMWARE_VERSION = "1.0";
-    private static final String DEVICE_ID = "TestDeviceID";
+    private static final String DEVICE_ID = "my-test-device2";
     private static final String TEST_BROKER_URL = "tcp://127.0.0.1:1883";
-    private static final String TEST_NODE = "TestNode";
-    private static final String TEST_PROPERTY = "TestProperty";
-    private static final String TEST_UNIT = "TestUnit";
-    private static final String TEST_NODE_TYPE = "TestNodeType";
+    private static final String TEST_NODE = "test-node";
+    private static final String TEST_PROPERTY = "test-property";
+    private static final String TEST_UNIT = "test-unit";
+    private static final String TEST_NODE_TYPE = "test-node-type";
 
     Homie homie;
     private MqttClient client;
@@ -212,5 +212,17 @@ public class MainTest {
 
         assert wasSet[0];
         assert wasReceived[0];
+    }
+
+    @Test
+    void topicIDTest() {
+        assert Homie.isValidTopicID("test-topic");
+        assert Homie.isValidTopicID("test-topic2");
+        assert Homie.isValidTopicID("test2topic");
+        assert !Homie.isValidTopicID("-test-topic");
+        assert !Homie.isValidTopicID("-test-topic-");
+        assert !Homie.isValidTopicID("$test-topic");
+        assert !Homie.isValidTopicID("test&-topic");
+        assert !Homie.isValidTopicID("Test-topic");
     }
 }

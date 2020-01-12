@@ -13,6 +13,7 @@ import java.util.TimerTask;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.regex.*;
 
 public class Homie {
 
@@ -20,6 +21,8 @@ public class Homie {
 
     private static final String HOMIE_CONVENTION = "3.0.0";
     private static final String IMPLEMENTATION = "java";
+
+    private static final Pattern topicIDPattern = Pattern.compile("^[a-z0-9][-a-z0-9]+[a-z0-9]$");
 
     public static enum State {
         INIT, READY, DISCONNECTED, SLEEPING, LOST, ALERT
@@ -246,7 +249,7 @@ public class Homie {
     }
 
     private String buildPath(String attribute) {
-        return configuration.getDeviceTopic() + "/" + configuration.getDeviceID() + "/" + attribute;
+        return configuration.getBaseTopic() + "/" + configuration.getDeviceID() + "/" + attribute;
     }
 
     public void shutdown() {
@@ -282,6 +285,10 @@ public class Homie {
      * Generates and registers a new node within Homie.
      */
     public Node createNode(String name, String type) {
+        if(!isValidTopicID(name)) {
+            throw new IllegalArgumentException("Node name doesn't match homie's allowed topic ID pattern");
+        }
+
         if (nodes.containsKey(name)) {
             return nodes.get(name);
         } else {
@@ -289,6 +296,15 @@ public class Homie {
             nodes.put(name, n);
             return n;
         }
+    }
+
+
+    /**
+     * Checks if a given topic ID is valid
+     */
+    protected static Boolean isValidTopicID(String id) {
+        Matcher m = topicIDPattern.matcher(id);
+        return m.matches();
     }
 
 }
