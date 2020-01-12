@@ -11,6 +11,7 @@ public class Property {
     private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 
     private String name = "";
+    private final String id;
     private boolean settable = false;
     private String unit = "";
     private String format = "";
@@ -30,8 +31,8 @@ public class Property {
         }
     };
 
-    public Property(Homie homie, Node node, String name) {
-        this.name = name;
+    public Property(Homie homie, Node node, String id) {
+        this.id = id;
         this.node = node;
         this.homie = homie;
     }
@@ -42,17 +43,21 @@ public class Property {
 
     public void makeUnsettable() {
         this.settable = false;
-        homie.deregisterListener(node.getName() + "/" + this.name + "/$settable");
+        homie.deregisterListener(node.getID() + "/" + this.getID() + "/$settable");
     }
 
     public void makeSettable(PropertySetCallback callback) {
         this.settable = true;
         this.callback = callback;
-        homie.registerListener(node.getName() + "/" + this.name + "/set", setMessageListener);
+        homie.registerListener(node.getID() + "/" + this.getID() + "/set", setMessageListener);
     }
 
     public String getUnit() {
         return unit;
+    }
+
+    public String getID() {
+        return id;
     }
 
     public void setUnit(String unit) {
@@ -76,18 +81,18 @@ public class Property {
     }
 
     public void send(String value) {
-        homie.publish(node.getName() + "/" + this.name, value, false);
+        homie.publish(node.getID() + "/" + this.getID(), value, false);
     }
 
     protected void onConnect() {
         if (!"".equals(unit)) {
-            homie.publish(node.getName() + "/" + this.name + "/$unit", unit, true);
+            homie.publish(node.getID() + "/" + this.getID() + "/$unit", unit, true);
         }
 
-        homie.publish(node.getName() + "/" + this.name + "/$settable", Boolean.toString(settable), true);
+        homie.publish(node.getID() + "/" + this.getID() + "/$settable", Boolean.toString(settable), true);
         
         if (DataType.STRING != dataType) {
-            homie.publish(node.getName() + "/" + this.name + "/$datatype", dataType.toString().toLowerCase(), true);
+            homie.publish(node.getID() + "/" + this.getID() + "/$datatype", dataType.toString().toLowerCase(), true);
         }
     }
 }

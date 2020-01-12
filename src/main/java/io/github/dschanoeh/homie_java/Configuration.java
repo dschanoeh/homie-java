@@ -4,6 +4,7 @@ public class Configuration {
 
     private String deviceID;
     private String brokerUrl;
+    private String deviceName = "";
     private String baseTopic = "homie";
     private Integer statsInterval = 10000;
     private Integer disconnectRetry = 2000;
@@ -11,6 +12,12 @@ public class Configuration {
     public String getDeviceID() {
         return deviceID;
     }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String name) { this.deviceName = name; }
 
     public void setDeviceID(String name) {
         if(!Homie.isValidTopicID(name)) {

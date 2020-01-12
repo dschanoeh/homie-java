@@ -9,8 +9,10 @@ public class MainTest {
     private static final String FIRMWARE_NAME = "TestFirmware";
     private static final String FIRMWARE_VERSION = "1.0";
     private static final String DEVICE_ID = "my-test-device2";
+    private static final String DEVICE_NAME = "My Device Name";
     private static final String TEST_BROKER_URL = "tcp://127.0.0.1:1883";
     private static final String TEST_NODE = "test-node";
+    private static final String TEST_NODE_NAME = "My Test Node 3 %";
     private static final String TEST_PROPERTY = "test-property";
     private static final String TEST_UNIT = "test-unit";
     private static final String TEST_NODE_TYPE = "test-node-type";
@@ -22,6 +24,7 @@ public class MainTest {
         Configuration c = new Configuration();
         c.setBrokerUrl(TEST_BROKER_URL);
         c.setDeviceID(DEVICE_ID);
+        c.setDeviceName(DEVICE_NAME);
         homie = new Homie(c, FIRMWARE_NAME, FIRMWARE_VERSION);
     }
 
@@ -55,14 +58,14 @@ public class MainTest {
     }
 
     @Test
-    void testDeviceID() throws MqttException {
+    void testDeviceName() throws MqttException {
         final Boolean[] wasReceived = {false};
 
         IMqttMessageListener listener = new IMqttMessageListener() {
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String payload = new String(message.getPayload());
-                if(payload.equals(DEVICE_ID)) {
+                if(payload.equals(DEVICE_NAME)) {
                     wasReceived[0] = true;
                 }
             }
@@ -145,6 +148,7 @@ public class MainTest {
         client.subscribe(nodeTypeTopic, nodeTypeListener);
 
         Node node = homie.createNode(TEST_NODE, TEST_NODE_TYPE);
+        node.setName(TEST_NODE_NAME);
         Property property = node.getProperty(TEST_PROPERTY);
         property.setUnit(TEST_UNIT);
         property.setDataType(Property.DataType.FLOAT);
@@ -193,7 +197,8 @@ public class MainTest {
 
         client.subscribe(settableTopic, settableListener);
 
-        Node node = homie.createNode(TEST_NODE, "String");
+        Node node = homie.createNode(TEST_NODE,"String");
+        node.setName(TEST_NODE_NAME);
         Property property = node.getProperty(TEST_PROPERTY);
         property.setUnit(TEST_UNIT);
         property.setDataType(Property.DataType.BOOLEAN);

@@ -19,7 +19,7 @@ public class Homie {
 
     private final static Logger LOGGER = Logger.getLogger(Homie.class.getName());
 
-    private static final String HOMIE_CONVENTION = "3.0.0";
+    private static final String HOMIE_CONVENTION = "4.0.0";
     private static final String IMPLEMENTATION = "java";
 
     private static final Pattern topicIDPattern = Pattern.compile("^[a-z0-9][-a-z0-9]+[a-z0-9]$");
@@ -200,11 +200,14 @@ public class Homie {
 
     private void sendAttributes() {
         publish("$homie", HOMIE_CONVENTION, true);
-        publish("$name", configuration.getDeviceID(), true);
         publish("$implementation", IMPLEMENTATION, true);
         publish("$stats/interval", Integer.toString(configuration.getStatsInterval()), true);
         publish("$fw/name", firmwareName, true);
         publish("$fw/version", firmwareVersion, true);
+        publish("$extensions", "", true);
+
+        /* Device attributes */
+        publish("$name", configuration.getDeviceName(), true);
     }
 
     private boolean sendStats() {
@@ -239,7 +242,6 @@ public class Homie {
             LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
         }
     }
-
 
     private void publishNodes() {
         String n = nodes.keySet().stream().collect(Collectors.joining(","));
@@ -284,16 +286,16 @@ public class Homie {
     /**
      * Generates and registers a new node within Homie.
      */
-    public Node createNode(String name, String type) {
-        if(!isValidTopicID(name)) {
-            throw new IllegalArgumentException("Node name doesn't match homie's allowed topic ID pattern");
+    public Node createNode(String id, String type) {
+        if(!isValidTopicID(id)) {
+            throw new IllegalArgumentException("Node id doesn't match homie's allowed topic ID pattern");
         }
 
-        if (nodes.containsKey(name)) {
-            return nodes.get(name);
+        if (nodes.containsKey(id)) {
+            return nodes.get(id);
         } else {
-            Node n = new Node(this, name, type);
-            nodes.put(name, n);
+            Node n = new Node(this, id, type);
+            nodes.put(id, n);
             return n;
         }
     }
