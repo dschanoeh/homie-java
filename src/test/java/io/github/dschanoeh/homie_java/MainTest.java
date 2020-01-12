@@ -220,6 +220,110 @@ public class MainTest {
     }
 
     @Test
+    void testPropertyTypes() throws MqttException, InterruptedException {
+        final Boolean[] wasReceived = {false, false, false, false};
+
+        Double TEST_VAL_1 = 0.1;
+        Boolean TEST_VAL_2 = false;
+
+        IMqttMessageListener val1Listener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                Double val = Double.valueOf(payload);
+                if((val - TEST_VAL_1) < 0.0001) {
+                    wasReceived[0] = true;
+                }
+            }
+        };
+
+        IMqttMessageListener val2Listener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                Boolean val = Boolean.valueOf(payload);
+                if(val == TEST_VAL_2) {
+                    wasReceived[1] = true;
+                }
+            }
+        };
+
+        IMqttMessageListener val1DatatypeListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                if(payload.equals("float")) {
+                    wasReceived[2] = true;
+                }
+            }
+        };
+
+        IMqttMessageListener val2DatatypeListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                if(payload.equals("boolean")) {
+                    wasReceived[3] = true;
+                }
+            }
+        };
+
+        assert client.isConnected();
+        assert homie.getState() == Homie.State.INIT;
+
+        String val1Topic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY;
+        String val2Topic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "2";
+        String val1DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$datatype";
+        String val2DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "2" + "/$datatype";
+
+
+        client.subscribe(val1Topic, val1Listener);
+        client.subscribe(val2Topic, val2Listener);
+        client.subscribe(val1DatatypeTopic, val1DatatypeListener);
+        client.subscribe(val2DatatypeTopic, val2DatatypeListener);
+
+        Node node = homie.createNode(TEST_NODE, TEST_NODE_TYPE);
+        node.setName(TEST_NODE_NAME);
+
+        Property property = node.getProperty(TEST_PROPERTY);
+        property.setUnit(TEST_UNIT);
+        property.setDataType(Property.DataType.FLOAT);
+
+        Property property2 = node.getProperty(TEST_PROPERTY + "2");
+        property2.setUnit(TEST_UNIT);
+        property2.setDataType(Property.DataType.BOOLEAN);
+
+        homie.setup();
+
+        while(homie.getState() != Homie.State.READY) {
+            Thread.sleep(50);
+        }
+
+        property.send(TEST_VAL_1);
+        property2.send(TEST_VAL_2);
+
+        /* Test sending with an illegal datatype */
+        Boolean exceptionThrown = false;
+        try {
+            property2.send(TEST_VAL_1);
+        } catch (Exception ex) {
+            exceptionThrown = true;
+        }
+        assert exceptionThrown;
+
+        Thread.sleep(100);
+
+        assert wasReceived[0];
+        assert wasReceived[1];
+        assert wasReceived[2];
+        assert wasReceived[3];
+    }
+
+    @Test
     void topicIDTest() {
         assert Homie.isValidTopicID("test-topic");
         assert Homie.isValidTopicID("test-topic2");

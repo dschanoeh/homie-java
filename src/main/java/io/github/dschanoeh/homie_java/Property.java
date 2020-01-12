@@ -1,10 +1,8 @@
 package io.github.dschanoeh.homie_java;
 
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Property {
@@ -13,6 +11,7 @@ public class Property {
     private String name = "";
     private final String id;
     private boolean settable = false;
+    private boolean retained = true;
     private String unit = "";
     private String format = "";
     private DataType dataType = DataType.STRING;
@@ -41,6 +40,14 @@ public class Property {
         return settable;
     }
 
+    public boolean isRetained() {
+        return retained;
+    }
+
+    public void setRetained(boolean retained) {
+        this.retained = retained;
+    }
+
     public void makeUnsettable() {
         this.settable = false;
         homie.deregisterListener(node.getID() + "/" + this.getID() + "/$settable");
@@ -64,6 +71,14 @@ public class Property {
         this.unit = unit;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getFormat() {
         return format;
     }
@@ -81,18 +96,57 @@ public class Property {
     }
 
     public void send(String value) {
-        homie.publish(node.getID() + "/" + this.getID(), value, false);
+        if(this.dataType != DataType.BOOLEAN) {
+            throw new UnsupportedOperationException("Trying to send String value but property type is " + this.dataType.toString());
+        }
+
+        homie.publish(buildPath(""), value, this.isRetained());
+    }
+
+    public void send(Boolean value) {
+        if(this.dataType != DataType.BOOLEAN) {
+            throw new UnsupportedOperationException("Trying to send Boolean value but property type is " + this.dataType.toString());
+        }
+
+        String s = String.valueOf(value).toLowerCase();
+        homie.publish(buildPath(""), s, this.isRetained());
+    }
+
+    public void send(Integer value) {
+        if(this.dataType != DataType.INTEGER) {
+            throw new UnsupportedOperationException("Trying to send Integer value but property type is " + this.dataType.toString());
+        }
+
+        String s = String.valueOf(value);
+        homie.publish(buildPath(""), s, this.isRetained());
+    }
+
+    public void send(Double value) {
+        if(this.dataType != DataType.FLOAT) {
+            throw new UnsupportedOperationException("Trying to send Float value but property type is " + this.dataType.toString());
+        }
+        if(value.isInfinite() || value.isNaN()) {
+            throw new IllegalArgumentException("NaN and infinity values are not supported");
+        }
+
+        String s = String.valueOf(value);
+        homie.publish(buildPath(""), s, this.isRetained());
     }
 
     protected void onConnect() {
         if (!"".equals(unit)) {
-            homie.publish(node.getID() + "/" + this.getID() + "/$unit", unit, true);
+            homie.publish(buildPath("/$unit"), unit, true);
         }
 
-        homie.publish(node.getID() + "/" + this.getID() + "/$settable", Boolean.toString(settable), true);
+        homie.publish(buildPath("/$name"), this.getName(), true);
+        homie.publish(buildPath("/$settable"), Boolean.toString(settable), true);
         
         if (DataType.STRING != dataType) {
-            homie.publish(node.getID() + "/" + this.getID() + "/$datatype", dataType.toString().toLowerCase(), true);
+            homie.publish(buildPath("/$datatype"), dataType.toString().toLowerCase(), true);
         }
+    }
+
+    protected String buildPath(String topic) {
+        return node.getID() + "/" + this.getID() + topic;
     }
 }
