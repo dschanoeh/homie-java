@@ -24,7 +24,7 @@ public class Homie {
 
     private static final Pattern topicIDPattern = Pattern.compile("^[a-z0-9][-a-z0-9]+[a-z0-9]$");
 
-    public static enum State {
+    public enum State {
         INIT, READY, DISCONNECTED, SLEEPING, LOST, ALERT
     }
 
@@ -41,8 +41,8 @@ public class Homie {
     private Function<Void, String> cpuTemperatureFunction;
     private Function<Void, String> cpuLoadFunction;
 
-    private HashMap<String, Node> nodes = new HashMap<>();
-    private HashMap<String, IMqttMessageListener> listeners = new HashMap<>();
+    private final HashMap<String, Node> nodes = new HashMap<>();
+    private final HashMap<String, IMqttMessageListener> listeners = new HashMap<>();
 
 
     public State getState() {
@@ -210,7 +210,7 @@ public class Homie {
         publish("$name", configuration.getDeviceName(), true);
     }
 
-    private boolean sendStats() {
+    private void sendStats() {
         long uptime = Duration.between(bootTime, ZonedDateTime.now()).getSeconds();
         publish("$stats/uptime", Long.toString(uptime), true);
 
@@ -221,8 +221,6 @@ public class Homie {
         if (cpuLoadFunction != null) {
             publish("$stats/cpuload", cpuLoadFunction.apply(null), true);
         }
-
-        return true;
     }
 
     /**
@@ -244,10 +242,10 @@ public class Homie {
     }
 
     private void publishNodes() {
-        String n = nodes.keySet().stream().collect(Collectors.joining(","));
+        String n = String.join(",", nodes.keySet());
         publish("$nodes", n, true);
 
-        nodes.entrySet().forEach(i -> i.getValue().onConnect());
+        nodes.forEach((key, value) -> value.onConnect());
     }
 
     private String buildPath(String attribute) {

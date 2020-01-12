@@ -19,13 +19,13 @@ public class Property {
     private final Node node;
     private PropertySetCallback callback;
 
-    public static enum DataType {
+    public enum DataType {
         INTEGER, FLOAT, BOOLEAN, STRING, ENUM, COLOR
-    };
+    }
 
-    private IMqttMessageListener setMessageListener = new IMqttMessageListener() {
+    private final IMqttMessageListener setMessageListener = new IMqttMessageListener() {
         @Override
-        public void messageArrived(String topic, MqttMessage message) throws Exception {
+        public void messageArrived(String topic, MqttMessage message) {
             callback.performSet(Property.this, message.toString());
         }
     };

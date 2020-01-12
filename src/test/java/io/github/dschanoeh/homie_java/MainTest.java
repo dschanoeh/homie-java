@@ -17,7 +17,7 @@ public class MainTest {
     private static final String TEST_UNIT = "test-unit";
     private static final String TEST_NODE_TYPE = "test-node-type";
 
-    Homie homie;
+    private final Homie homie;
     private MqttClient client;
 
     public MainTest() {

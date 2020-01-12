@@ -1,9 +1,7 @@
 package io.github.dschanoeh.homie_java;
 
 import java.util.HashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class Node {
 
@@ -13,7 +11,7 @@ public class Node {
     private final String type;
     private final String id;
     private final Homie homie;
-    HashMap<String, Property> properties = new HashMap<>();
+    private final HashMap<String, Property> properties = new HashMap<>();
 
     public String getName() {
         return name;
@@ -61,7 +59,7 @@ public class Node {
      */
     protected void onConnect() {
         sendProperties();
-        properties.entrySet().forEach(i -> i.getValue().onConnect());
+        properties.forEach((key, value) -> value.onConnect());
     }
 
     /**
@@ -69,7 +67,7 @@ public class Node {
      */
     private void sendProperties() {
         homie.publish(this.getID() + "/" + "$type", type, true);
-        String p = properties.keySet().stream().collect(Collectors.joining(","));
+        String p = String.join(",", properties.keySet());
         homie.publish(this.getID() + "/"+ "$properties", p, true);
         homie.publish(this.getID() + "/" + "$name", this.getName(), true);
     }
