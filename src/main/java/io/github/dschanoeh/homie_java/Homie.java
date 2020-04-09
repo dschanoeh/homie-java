@@ -224,25 +224,39 @@ public class Homie {
     }
 
     /**
-     * Publish an MQTT message. If the topic is prefixed with / it will be absolute. 
-     * Otherwise it is relative to the base name
+     * Publish an MQTT message.
      */
-    public void publish(String topic, String payload, Boolean retained) {
+    protected void publish(String topic, String payload, Boolean retained) {
         if (client != null && client.isConnected()) {
             MqttMessage message = new MqttMessage();
             message.setRetained(retained);
             message.setPayload(payload.getBytes());
             try {
-				if (topic.startsWith("/"))
-					client.publish(topic.substring(1), message);
-				else
-					client.publish(buildPath(topic), message);
+                client.publish(buildPath(topic), message);
             } catch (MqttException e) {
                 LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
             }
         } else {
             LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
         }
+    }
+    
+    /**
+     * Publish an MQTT message.
+     */
+    public boolean publish(String topic, MqttMessage message) {
+        if (client != null && client.isConnected()) {
+            try {
+                client.publish(topic, message);
+            } catch (MqttException e) {
+                LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
+                return false;
+            }
+        } else {
+            LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
+            return false;
+        }
+        return true;
     }
 
     private void publishNodes() {
