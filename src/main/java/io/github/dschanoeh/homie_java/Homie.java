@@ -243,6 +243,8 @@ public class Homie {
     
     /**
      * Publish an MQTT message.
+     * WARNING: Posting to the wrong topic can cause issues with the homie
+     * convention.
      */
     public boolean publish(String topic, MqttMessage message) {
         if (client != null && client.isConnected()) {
