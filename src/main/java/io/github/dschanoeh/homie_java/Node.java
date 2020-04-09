@@ -54,6 +54,10 @@ public class Node {
             return properties.get(id);
         }
     }
+    
+    public int getPropCount() {
+    	return properties.size();
+    }
 
     /**
      * Gets called when homie is successfully connected and allows nodes and

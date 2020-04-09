@@ -169,6 +169,8 @@ public class Homie {
             client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID(), new MemoryPersistence());
             MqttConnectOptions options = new MqttConnectOptions();
 
+			options.setMaxInflight(nodes.values().stream().mapToInt(Node::getPropCount).sum()*2);
+
             /* Last will will be used in case of an ungraceful disconnect */
             options.setWill(buildPath("$state"),State.LOST.toString().toLowerCase().getBytes(),1,true);
             client.connect(options);
