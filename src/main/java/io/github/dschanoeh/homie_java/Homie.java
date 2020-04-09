@@ -226,7 +226,7 @@ public class Homie {
     /**
      * Publish an MQTT message.
      */
-    public void publish(String topic, String payload, Boolean retained) {
+    protected void publish(String topic, String payload, Boolean retained) {
         if (client != null && client.isConnected()) {
             MqttMessage message = new MqttMessage();
             message.setRetained(retained);
@@ -239,6 +239,26 @@ public class Homie {
         } else {
             LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
         }
+    }
+    
+    /**
+     * Publish an MQTT message.
+     * WARNING: Posting to the wrong topic can cause issues with the homie
+     * convention.
+     */
+    public boolean publish(String topic, MqttMessage message) {
+        if (client != null && client.isConnected()) {
+            try {
+                client.publish(topic, message);
+            } catch (MqttException e) {
+                LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
+                return false;
+            }
+        } else {
+            LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
+            return false;
+        }
+        return true;
     }
 
     private void publishNodes() {
