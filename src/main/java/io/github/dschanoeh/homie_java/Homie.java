@@ -224,7 +224,8 @@ public class Homie {
     }
 
     /**
-     * Publish an MQTT message.
+     * Publish an MQTT message. If the topic is prefixed with / it will be absolute. 
+     * Otherwise it is relative to the base name
      */
     public void publish(String topic, String payload, Boolean retained) {
         if (client != null && client.isConnected()) {
@@ -232,7 +233,10 @@ public class Homie {
             message.setRetained(retained);
             message.setPayload(payload.getBytes());
             try {
-                client.publish(buildPath(topic), message);
+				if (topic.startsWith("/"))
+					client.publish(topic.substring(1), message);
+				else
+					client.publish(buildPath(topic), message);
             } catch (MqttException e) {
                 LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
             }
