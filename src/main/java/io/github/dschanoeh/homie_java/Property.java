@@ -98,10 +98,16 @@ public class Property {
     }
 
     public void send(String value) {
-        if(this.dataType != DataType.STRING) {
+        switch (this.dataType) {
+        case BOOLEAN:
+        case FLOAT:
+        case INTEGER:
             throw new UnsupportedOperationException("Trying to send String value but property type is " + this.dataType.toString());
+        case ENUM:
+        case COLOR:
+        case STRING:
+            break;
         }
-
         homie.publish(buildPath(""), value, this.isRetained());
     }
 
@@ -111,6 +117,15 @@ public class Property {
         }
 
         String s = String.valueOf(value).toLowerCase();
+        homie.publish(buildPath(""), s, this.isRetained());
+    }
+    
+    public void send(Long value) {
+        if(this.dataType != DataType.INTEGER) {
+            throw new UnsupportedOperationException("Trying to send Long value but property type is " + this.dataType.toString());
+        }
+        
+        String s = String.valueOf(value);
         homie.publish(buildPath(""), s, this.isRetained());
     }
 
