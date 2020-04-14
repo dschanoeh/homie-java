@@ -4,6 +4,8 @@ public class Configuration {
 
     private String deviceID;
     private String brokerUrl;
+    private String brokerPassword;
+    private String brokerUsername;
     private String deviceName = "";
     private String baseTopic = "homie";
     private Integer statsInterval = 10000;
@@ -34,7 +36,23 @@ public class Configuration {
         this.brokerUrl = brokerUrl;
     }
 
-    public String getBaseTopic() {
+    public String getBrokerPassword() {
+		return brokerPassword;
+	}
+
+	public void setBrokerPassword(String brokerPassword) {
+		this.brokerPassword = brokerPassword;
+	}
+
+	public String getBrokerUsername() {
+		return brokerUsername;
+	}
+
+	public void setBrokerUsername(String brokerUsername) {
+		this.brokerUsername = brokerUsername;
+	}
+
+	public String getBaseTopic() {
         return baseTopic;
     }
 

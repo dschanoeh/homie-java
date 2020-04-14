@@ -168,6 +168,12 @@ public class Homie {
 
             client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID(), new MemoryPersistence());
             MqttConnectOptions options = new MqttConnectOptions();
+            if (configuration.getBrokerPassword()!=null) {
+            	options.setPassword(configuration.getBrokerPassword().toCharArray());
+            }
+            if (configuration.getBrokerUsername() != null) {
+            	options.setUserName(configuration.getBrokerUsername());
+            }
 
 			options.setMaxInflight(Math.max(10, nodes.values().stream().mapToInt(Node::getPropCount).sum()*2));
 
