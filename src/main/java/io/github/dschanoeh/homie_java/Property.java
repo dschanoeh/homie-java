@@ -3,6 +3,7 @@ package io.github.dschanoeh.homie_java;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import javax.xml.crypto.Data;
 import java.util.logging.Logger;
 
 public class Property {
@@ -20,7 +21,7 @@ public class Property {
     private PropertySetCallback callback;
 
     public enum DataType {
-        INTEGER, FLOAT, BOOLEAN, STRING, ENUM, COLOR
+        INTEGER, FLOAT, BOOLEAN, STRING, ENUM, COLOR_RGB, COLOR_HSV
     }
 
     private final IMqttMessageListener setMessageListener = new IMqttMessageListener() {
@@ -86,7 +87,11 @@ public class Property {
     }
 
     public void setFormat(String format) {
-        this.format = format;
+        if(this.dataType == DataType.COLOR_HSV || this.dataType == DataType.COLOR_RGB) {
+            throw new UnsupportedOperationException("Cannot modify the format on properties of the color data type");
+        } else {
+            this.format = format;
+        }
     }
 
     public DataType getDataType() {
@@ -95,6 +100,12 @@ public class Property {
 
     public void setDataType(DataType dataType) {
         this.dataType = dataType;
+
+        if(dataType == DataType.COLOR_RGB) {
+            this.format = "rgb";
+        } else if(dataType == DataType.COLOR_HSV) {
+            this.format = "hsv";
+        }
     }
 
     public void send(String value) {
@@ -102,9 +113,10 @@ public class Property {
         case BOOLEAN:
         case FLOAT:
         case INTEGER:
+        case COLOR_RGB:
+        case COLOR_HSV:
             throw new UnsupportedOperationException("Trying to send String value but property type is " + this.dataType.toString());
         case ENUM:
-        case COLOR:
         case STRING:
             break;
         }
@@ -165,6 +177,28 @@ public class Property {
         homie.publish(buildPath(""), s, this.isRetained());
     }
 
+    public void send(Integer a, Integer b, Integer c) {
+        if(this.dataType == DataType.COLOR_HSV) {
+            if (a < 0 || a > 360 ||
+                b < 0 || b > 100 ||
+                c < 0 || c > 100) {
+                throw new IllegalArgumentException("Provided color values are not within [0:360][0:100][0:100]");
+            }
+            String s = String.format("%d,%d,%d", a, b, c);
+            homie.publish(buildPath(""), s, this.isRetained());
+        } else if(this.dataType == DataType.COLOR_RGB) {
+            if (a < 0 || a > 255 ||
+                b < 0 || b > 255 ||
+                c < 0 || c > 255) {
+                throw new IllegalArgumentException("Provided color values are not within [0:255][0:255][0:255]");
+            }
+            String s = String.format("%d,%d,%d", a, b, c);
+            homie.publish(buildPath(""), s, this.isRetained());
+        } else {
+            throw new UnsupportedOperationException("Trying to send color value but property type is " + this.dataType.toString());
+        }
+    }
+
     protected void onConnect() {
         if (!"".equals(unit)) {
             homie.publish(buildPath("/$unit"), unit, true);
@@ -175,6 +209,10 @@ public class Property {
 
         if (DataType.STRING != dataType) {
             homie.publish(buildPath("/$datatype"), dataType.toString().toLowerCase(), true);
+        }
+
+        if(null != this.format && this.format !=  "") {
+            homie.publish(buildPath("/$format"), this.format, true);
         }
     }
 

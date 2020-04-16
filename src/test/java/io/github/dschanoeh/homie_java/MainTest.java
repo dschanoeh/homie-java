@@ -16,6 +16,9 @@ public class MainTest {
     private static final String TEST_PROPERTY = "test-property";
     private static final String TEST_UNIT = "test-unit";
     private static final String TEST_NODE_TYPE = "test-node-type";
+    private static final String TEST_COLOR_PROPERTY = "test-color-property";
+    private static final String TEST_COLOR_VALUE_STRING = "1,2,3";
+    private static final String TEST_COLOR_FORMAT = "rgb";
 
     private final Homie homie;
     private MqttClient client;
@@ -221,7 +224,7 @@ public class MainTest {
 
     @Test
     void testPropertyTypes() throws MqttException, InterruptedException {
-        final Boolean[] wasReceived = {false, false, false, false};
+        final Boolean[] wasReceived = {false, false, false, false, false, false};
 
         Double TEST_VAL_1 = 0.1;
         Boolean TEST_VAL_2 = false;
@@ -272,11 +275,35 @@ public class MainTest {
             }
         };
 
+        IMqttMessageListener colorValueListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                if(payload.equals(TEST_COLOR_VALUE_STRING)) {
+                    wasReceived[4] = true;
+                }
+            }
+        };
+
+        IMqttMessageListener colorFormatListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                if(payload.equals(TEST_COLOR_FORMAT)) {
+                    wasReceived[5] = true;
+                }
+            }
+        };
+
         assert client.isConnected();
         assert homie.getState() == Homie.State.INIT;
 
         String val1Topic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY;
         String val2Topic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "2";
+        String colorValTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_COLOR_PROPERTY;
+        String colorFormatTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_COLOR_PROPERTY + "/$format";
         String val1DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$datatype";
         String val2DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "2" + "/$datatype";
 
@@ -285,6 +312,8 @@ public class MainTest {
         client.subscribe(val2Topic, val2Listener);
         client.subscribe(val1DatatypeTopic, val1DatatypeListener);
         client.subscribe(val2DatatypeTopic, val2DatatypeListener);
+        client.subscribe(colorValTopic, colorValueListener);
+        client.subscribe(colorFormatTopic, colorFormatListener);
 
         Node node = homie.createNode(TEST_NODE, TEST_NODE_TYPE);
         node.setName(TEST_NODE_NAME);
@@ -297,6 +326,9 @@ public class MainTest {
         property2.setUnit(TEST_UNIT);
         property2.setDataType(Property.DataType.BOOLEAN);
 
+        Property colorProperty = node.getProperty(TEST_COLOR_PROPERTY);
+        colorProperty.setDataType(Property.DataType.COLOR_RGB);
+
         homie.setup();
 
         while(homie.getState() != Homie.State.READY) {
@@ -305,6 +337,7 @@ public class MainTest {
 
         property.send(TEST_VAL_1);
         property2.send(TEST_VAL_2);
+        colorProperty.send(1,2,3);
 
         /* Test sending with an illegal datatype */
         Boolean exceptionThrown = false;
@@ -315,12 +348,23 @@ public class MainTest {
         }
         assert exceptionThrown;
 
+        /* Test color out of range  */
+        Boolean exception2Thrown = false;
+        try {
+            colorProperty.send(10,10,256);
+        } catch (Exception ex) {
+            exception2Thrown = true;
+        }
+        assert exception2Thrown;
+
         Thread.sleep(100);
 
         assert wasReceived[0];
         assert wasReceived[1];
         assert wasReceived[2];
         assert wasReceived[3];
+        assert wasReceived[4];
+        assert wasReceived[5];
     }
 
     @Test
