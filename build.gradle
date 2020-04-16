@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id "com.diffplug.gradle.spotless" version "3.28.1"
 }
 
 repositories {
@@ -21,6 +22,13 @@ shadowJar {
     archiveVersion = '1.0-SNAPSHOT'
     archiveClassifier = ''
     archiveBaseName = 'homie-java'
+}
+
+spotless {
+    java {
+        indentWithSpaces()
+        trimTrailingWhitespace()
+    }
 }
 
 group = 'io.github.dschanoeh'

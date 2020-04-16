@@ -37,22 +37,22 @@ public class Configuration {
     }
 
     public String getBrokerPassword() {
-		return brokerPassword;
-	}
+        return brokerPassword;
+    }
 
-	public void setBrokerPassword(String brokerPassword) {
-		this.brokerPassword = brokerPassword;
-	}
+    public void setBrokerPassword(String brokerPassword) {
+        this.brokerPassword = brokerPassword;
+    }
 
-	public String getBrokerUsername() {
-		return brokerUsername;
-	}
+    public String getBrokerUsername() {
+        return brokerUsername;
+    }
 
-	public void setBrokerUsername(String brokerUsername) {
-		this.brokerUsername = brokerUsername;
-	}
+    public void setBrokerUsername(String brokerUsername) {
+        this.brokerUsername = brokerUsername;
+    }
 
-	public String getBaseTopic() {
+    public String getBaseTopic() {
         return baseTopic;
     }
 

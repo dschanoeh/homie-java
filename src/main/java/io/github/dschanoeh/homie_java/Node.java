@@ -54,9 +54,9 @@ public class Node {
             return properties.get(id);
         }
     }
-    
+
     public int getPropCount() {
-    	return properties.size();
+        return properties.size();
     }
 
     /**

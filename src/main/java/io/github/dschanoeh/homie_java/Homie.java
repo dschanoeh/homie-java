@@ -169,13 +169,13 @@ public class Homie {
             client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID(), new MemoryPersistence());
             MqttConnectOptions options = new MqttConnectOptions();
             if (configuration.getBrokerPassword()!=null && !configuration.getBrokerPassword().isEmpty()) {
-            	options.setPassword(configuration.getBrokerPassword().toCharArray());
+                options.setPassword(configuration.getBrokerPassword().toCharArray());
             }
             if (configuration.getBrokerUsername()!=null && !configuration.getBrokerUsername().isEmpty()) {
-            	options.setUserName(configuration.getBrokerUsername());
+                options.setUserName(configuration.getBrokerUsername());
             }
 
-			options.setMaxInflight(Math.max(10, nodes.values().stream().mapToInt(Node::getPropCount).sum()*2));
+            options.setMaxInflight(Math.max(10, nodes.values().stream().mapToInt(Node::getPropCount).sum()*2));
 
             /* Last will will be used in case of an ungraceful disconnect */
             options.setWill(buildPath("$state"),State.LOST.toString().toLowerCase().getBytes(),1,true);
@@ -248,7 +248,7 @@ public class Homie {
             LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
         }
     }
-    
+
     /**
      * Publish an MQTT message.
      * WARNING: Posting to the wrong topic can cause issues with the homie

@@ -119,12 +119,12 @@ public class Property {
         String s = String.valueOf(value).toLowerCase();
         homie.publish(buildPath(""), s, this.isRetained());
     }
-    
+
     public void send(Long value) {
         if(this.dataType != DataType.INTEGER) {
             throw new UnsupportedOperationException("Trying to send Long value but property type is " + this.dataType.toString());
         }
-        
+
         String s = String.valueOf(value);
         homie.publish(buildPath(""), s, this.isRetained());
     }
@@ -172,7 +172,7 @@ public class Property {
 
         homie.publish(buildPath("/$name"), this.getName(), true);
         homie.publish(buildPath("/$settable"), Boolean.toString(settable), true);
-        
+
         if (DataType.STRING != dataType) {
             homie.publish(buildPath("/$datatype"), dataType.toString().toLowerCase(), true);
         }
