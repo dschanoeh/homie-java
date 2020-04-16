@@ -19,6 +19,10 @@ public class MainTest {
     private static final String TEST_COLOR_PROPERTY = "test-color-property";
     private static final String TEST_COLOR_VALUE_STRING = "1,2,3";
     private static final String TEST_COLOR_FORMAT = "rgb";
+    private static final String TEST_ENUM_PROPERTY = "test-enum-property";
+    private static final String TEST_ENUM_VALUE_STRING = "bar";
+    private static final String TEST_ENUM_FORMAT = "foo,bar";
+    private static final String TEST_FALSE_ENUM_VALUE_STRING = "baz";
 
     private final Homie homie;
     private MqttClient client;
@@ -224,7 +228,7 @@ public class MainTest {
 
     @Test
     void testPropertyTypes() throws MqttException, InterruptedException {
-        final Boolean[] wasReceived = {false, false, false, false, false, false};
+        final Boolean[] wasReceived = {false, false, false, false, false, false, false};
 
         Double TEST_VAL_1 = 0.1;
         Boolean TEST_VAL_2 = false;
@@ -297,6 +301,17 @@ public class MainTest {
             }
         };
 
+        IMqttMessageListener enumValueListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                if(payload.equals(TEST_ENUM_VALUE_STRING)) {
+                    wasReceived[6] = true;
+                }
+            }
+        };
+
         assert client.isConnected();
         assert homie.getState() == Homie.State.INIT;
 
@@ -306,6 +321,7 @@ public class MainTest {
         String colorFormatTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_COLOR_PROPERTY + "/$format";
         String val1DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$datatype";
         String val2DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "2" + "/$datatype";
+        String enumValTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_ENUM_PROPERTY;
 
 
         client.subscribe(val1Topic, val1Listener);
@@ -314,6 +330,7 @@ public class MainTest {
         client.subscribe(val2DatatypeTopic, val2DatatypeListener);
         client.subscribe(colorValTopic, colorValueListener);
         client.subscribe(colorFormatTopic, colorFormatListener);
+        client.subscribe(enumValTopic, enumValueListener);
 
         Node node = homie.createNode(TEST_NODE, TEST_NODE_TYPE);
         node.setName(TEST_NODE_NAME);
@@ -329,6 +346,10 @@ public class MainTest {
         Property colorProperty = node.getProperty(TEST_COLOR_PROPERTY);
         colorProperty.setDataType(Property.DataType.COLOR_RGB);
 
+        Property enumProperty = node.getProperty(TEST_ENUM_PROPERTY);
+        enumProperty.setDataType(Property.DataType.ENUM);
+        enumProperty.setFormat(TEST_ENUM_FORMAT);
+
         homie.setup();
 
         while(homie.getState() != Homie.State.READY) {
@@ -338,6 +359,7 @@ public class MainTest {
         property.send(TEST_VAL_1);
         property2.send(TEST_VAL_2);
         colorProperty.send(1,2,3);
+        enumProperty.send(TEST_ENUM_VALUE_STRING);
 
         /* Test sending with an illegal datatype */
         Boolean exceptionThrown = false;
@@ -357,6 +379,15 @@ public class MainTest {
         }
         assert exception2Thrown;
 
+        /* Test enum out of range  */
+        Boolean exception3Thrown = false;
+        try {
+            enumProperty.send(TEST_FALSE_ENUM_VALUE_STRING);
+        } catch (Exception ex) {
+            exception3Thrown = true;
+        }
+        assert exception3Thrown;
+
         Thread.sleep(100);
 
         assert wasReceived[0];
@@ -365,6 +396,7 @@ public class MainTest {
         assert wasReceived[3];
         assert wasReceived[4];
         assert wasReceived[5];
+        assert wasReceived[6];
     }
 
     @Test

@@ -3,7 +3,8 @@ package io.github.dschanoeh.homie_java;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import javax.xml.crypto.Data;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class Property {
@@ -19,6 +20,7 @@ public class Property {
     private final Homie homie;
     private final Node node;
     private PropertySetCallback callback;
+    private List<String> enumValues;
 
     public enum DataType {
         INTEGER, FLOAT, BOOLEAN, STRING, ENUM, COLOR_RGB, COLOR_HSV
@@ -89,6 +91,10 @@ public class Property {
     public void setFormat(String format) {
         if(this.dataType == DataType.COLOR_HSV || this.dataType == DataType.COLOR_RGB) {
             throw new UnsupportedOperationException("Cannot modify the format on properties of the color data type");
+        } else if(this.dataType == DataType.ENUM) {
+            String[] values = format.split(",");
+            enumValues = Arrays.asList(values);
+            this.format = format;
         } else {
             this.format = format;
         }
@@ -109,18 +115,23 @@ public class Property {
     }
 
     public void send(String value) {
-        switch (this.dataType) {
-        case BOOLEAN:
-        case FLOAT:
-        case INTEGER:
-        case COLOR_RGB:
-        case COLOR_HSV:
-            throw new UnsupportedOperationException("Trying to send String value but property type is " + this.dataType.toString());
-        case ENUM:
-        case STRING:
-            break;
+        if("".equals(value)) {
+            throw new UnsupportedOperationException("An empty string is not a valid value");
         }
-        homie.publish(buildPath(""), value, this.isRetained());
+
+        if(this.dataType == DataType.STRING) {
+            homie.publish(buildPath(""), value, this.isRetained());
+        } else if(this.dataType == DataType.ENUM) {
+            if(this.enumValues == null || this.enumValues.size() == 0) {
+                throw new UnsupportedOperationException("Trying to send enum value but no list of enum values was provided as format");
+            } else if(this.enumValues.stream().anyMatch(s -> s.equals(value))) {
+                homie.publish(buildPath(""), value, this.isRetained());
+            } else {
+                throw new UnsupportedOperationException("Trying to send an enum value which isn't included in the list of provided values");
+            }
+        } else {
+            throw new UnsupportedOperationException("Trying to send String value but property type is " + this.dataType.toString());
+        }
     }
 
     public void send(Boolean value) {
