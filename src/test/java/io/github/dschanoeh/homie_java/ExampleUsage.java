@@ -29,6 +29,10 @@ public class ExampleUsage {
         humidityProperty.setUnit("%");
         humidityProperty.setDataType(Property.DataType.INTEGER);
 
+        Property weatherProperty = node.getProperty("weather");
+        weatherProperty.setDataType(Property.DataType.ENUM);
+        weatherProperty.setFormat("rainy,sunny,overcast");
+
         /* Start homie. This call is non-blocking and new threads will be created for the main state machine handling
          * connecting and disconnecting.
          */
@@ -42,6 +46,7 @@ public class ExampleUsage {
         /* your code here to post sensor values, etc. */
         humidityProperty.send(12);
         temperatureProperty.send(22.546651, 2);
+        weatherProperty.send("sunny");
 
         homie.shutdown();
     }
