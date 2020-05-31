@@ -2,10 +2,12 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
     id "com.diffplug.gradle.spotless" version "3.28.1"
+    id 'maven'
 }
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -32,6 +34,7 @@ spotless {
 }
 
 group = 'io.github.dschanoeh'
+version = '1.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
