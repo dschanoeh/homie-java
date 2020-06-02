@@ -308,6 +308,7 @@ public class Homie {
                 publish("$state", State.DISCONNECTED.toString().toLowerCase(), true);
                 client.disconnect();
             }
+            statsTimer.cancel();
         } catch (MqttException e) {
             LOGGER.log(Level.INFO, "Failed to disconnect", e);
         }
