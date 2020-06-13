@@ -22,7 +22,7 @@ public class Homie {
     private static final String HOMIE_CONVENTION = "4.0.0";
     private static final String IMPLEMENTATION = "java";
 
-    private static final Pattern topicIDPattern = Pattern.compile("^[a-z0-9][-a-z0-9]+[a-z0-9]$");
+    private static final Pattern topicIDPattern = Pattern.compile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$");
 
     public enum State {
         INIT, READY, DISCONNECTED, SLEEPING, LOST, ALERT
