@@ -21,7 +21,7 @@ test {
 }
 
 shadowJar {
-    archiveVersion = '0.1.0'
+    archiveVersion = project.getVersion()
     archiveClassifier = ''
     archiveBaseName = 'homie-java'
 }
@@ -34,7 +34,7 @@ spotless {
 }
 
 group = 'io.github.dschanoeh'
-version = '0.1.0'
+version = '0.1.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 publishing {

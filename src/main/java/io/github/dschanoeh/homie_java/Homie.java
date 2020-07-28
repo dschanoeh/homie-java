@@ -1,19 +1,20 @@
 package io.github.dschanoeh.homie_java;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
-
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-import java.util.logging.Logger;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
-import java.util.regex.*;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.eclipse.paho.client.mqttv3.MqttConnectOptions.MAX_INFLIGHT_DEFAULT;
 
 public class Homie {
 
@@ -32,6 +33,7 @@ public class Homie {
     private final String firmwareName;
     private final String firmwareVersion;
     private MqttClient client;
+    private final MqttConnectOptions options;
     private State state = State.INIT;
     private State previousState = State.DISCONNECTED;
     private Thread stateMachineThread;
@@ -131,6 +133,19 @@ public class Homie {
         this.configuration = c;
         this.firmwareName = firmwareName;
         this.firmwareVersion = firmwareVersion;
+        this.options = new MqttConnectOptions();
+    }
+
+    /**
+     * Initialize a new Homie instance with the configuration and firmware name
+     * and version. The provided MqttConnectOptions will be used to set up the
+     * broker communication.
+     */
+    public Homie(Configuration c, String firmwareName, String firmwareVersion, MqttConnectOptions options) {
+        this.configuration = c;
+        this.firmwareName = firmwareName;
+        this.firmwareVersion = firmwareVersion;
+        this.options = options;
     }
 
     /**
@@ -167,7 +182,7 @@ public class Homie {
             }
 
             client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID(), new MemoryPersistence());
-            MqttConnectOptions options = new MqttConnectOptions();
+
             if (configuration.getBrokerPassword()!=null && !configuration.getBrokerPassword().isEmpty()) {
                 options.setPassword(configuration.getBrokerPassword().toCharArray());
             }
@@ -175,7 +190,10 @@ public class Homie {
                 options.setUserName(configuration.getBrokerUsername());
             }
 
-            options.setMaxInflight(Math.max(10, nodes.values().stream().mapToInt(Node::getPropCount).sum()*2));
+            /* If the user didn't set a custom MaxInFlight, we'll try to pick a good default */
+            if(options.getMaxInflight() == MAX_INFLIGHT_DEFAULT) {
+                options.setMaxInflight(Math.max(MAX_INFLIGHT_DEFAULT, nodes.values().stream().mapToInt(Node::getPropCount).sum() * 2));
+            }
 
             /* Last will will be used in case of an ungraceful disconnect */
             options.setWill(buildPath("$state"),State.LOST.toString().toLowerCase().getBytes(),1,true);
