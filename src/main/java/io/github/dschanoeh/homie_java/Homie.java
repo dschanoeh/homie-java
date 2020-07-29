@@ -42,6 +42,7 @@ public class Homie {
     private Timer statsTimer;
     private Function<Void, String> cpuTemperatureFunction;
     private Function<Void, String> cpuLoadFunction;
+    private BroadcastReceiver broadcastReceiver;
 
     private final HashMap<String, Node> nodes = new HashMap<>();
     private final HashMap<String, IMqttMessageListener> listeners = new HashMap<>();
@@ -199,6 +200,16 @@ public class Homie {
             options.setWill(buildPath("$state"),State.LOST.toString().toLowerCase().getBytes(),1,true);
             client.connect(options);
 
+            if(broadcastReceiver != null) {
+                IMqttMessageListener listener = new IMqttMessageListener() {
+                    @Override
+                    public void messageArrived(String topic, MqttMessage message) throws Exception {
+                        broadcastReceiver.broadcastReceived(topic.replace(getBroadcastPath(), ""), message.toString());
+                    }
+                };
+                client.subscribe(getBroadcastPath() + "#", listener);
+            }
+
             if (statsTimer != null) {
                 statsTimer.cancel();
             }
@@ -302,6 +313,10 @@ public class Homie {
         return configuration.getBaseTopic() + "/" + configuration.getDeviceID() + "/" + attribute;
     }
 
+    private String getBroadcastPath() {
+        return configuration.getBaseTopic() + "/" + "$broadcast" + "/";
+    }
+
     public void shutdown() {
         LOGGER.log(Level.INFO, "Shutdown request received");
         shutdownRequest = true;
@@ -356,6 +371,14 @@ public class Homie {
     protected static Boolean isValidTopicID(String id) {
         Matcher m = topicIDPattern.matcher(id);
         return m.matches();
+    }
+
+    /**
+     * Sets the broadcastReceiver. Must be called prior to setup().
+     * @param receiver the receiver to be notified
+     */
+    public void setBroadcastReceiver(BroadcastReceiver receiver) {
+        this.broadcastReceiver = receiver;
     }
 
 }

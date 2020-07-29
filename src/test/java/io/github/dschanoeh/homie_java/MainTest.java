@@ -23,6 +23,8 @@ public class MainTest {
     private static final String TEST_ENUM_VALUE_STRING = "bar";
     private static final String TEST_ENUM_FORMAT = "foo,bar";
     private static final String TEST_FALSE_ENUM_VALUE_STRING = "baz";
+    private static final String TEST_BROADCAST_TOPIC = "testBroadcast";
+    private static final String TEST_BROADCAST_PAYLOAD = "alert!";
 
     private final Homie homie;
     private MqttClient client;
@@ -409,5 +411,31 @@ public class MainTest {
         assert !Homie.isValidTopicID("$test-topic");
         assert !Homie.isValidTopicID("test&-topic");
         assert !Homie.isValidTopicID("Test-topic");
+    }
+
+    @Test
+    void broadcastTest() throws MqttException, InterruptedException {
+        final boolean[] broadcastReceived = {false};
+
+        homie.setBroadcastReceiver(new BroadcastReceiver() {
+            @Override
+            public void broadcastReceived(String topic, String payload) {
+                if(topic.equals(TEST_BROADCAST_TOPIC) && payload.equals(TEST_BROADCAST_PAYLOAD)) {
+                    broadcastReceived[0] = true;
+                }
+            }
+        });
+        homie.setup();
+        while(homie.getState() != Homie.State.READY) {
+            Thread.sleep(50);
+        }
+
+        MqttMessage m = new MqttMessage();
+        m.setPayload(TEST_BROADCAST_PAYLOAD.getBytes());
+        client.publish("homie/$broadcast/" + TEST_BROADCAST_TOPIC, m);
+
+        Thread.sleep(50);
+
+        assert broadcastReceived[0];
     }
 }
