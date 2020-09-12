@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.paho.client.mqttv3.MqttConnectOptions.MAX_INFLIGHT_DEFAULT;
 
 public class Homie {
@@ -184,23 +185,23 @@ public class Homie {
 
             client = new MqttClient(configuration.getBrokerUrl(), configuration.getDeviceID(), new MemoryPersistence());
 
-            if (configuration.getBrokerPassword()!=null && !configuration.getBrokerPassword().isEmpty()) {
+            if (configuration.getBrokerPassword() != null && !configuration.getBrokerPassword().isEmpty()) {
                 options.setPassword(configuration.getBrokerPassword().toCharArray());
             }
-            if (configuration.getBrokerUsername()!=null && !configuration.getBrokerUsername().isEmpty()) {
+            if (configuration.getBrokerUsername() != null && !configuration.getBrokerUsername().isEmpty()) {
                 options.setUserName(configuration.getBrokerUsername());
             }
 
             /* If the user didn't set a custom MaxInFlight, we'll try to pick a good default */
-            if(options.getMaxInflight() == MAX_INFLIGHT_DEFAULT) {
+            if (options.getMaxInflight() == MAX_INFLIGHT_DEFAULT) {
                 options.setMaxInflight(Math.max(MAX_INFLIGHT_DEFAULT, nodes.values().stream().mapToInt(Node::getPropCount).sum() * 2));
             }
 
             /* Last will will be used in case of an ungraceful disconnect */
-            options.setWill(buildPath("$state"),State.LOST.toString().toLowerCase().getBytes(),1,true);
+            options.setWill(buildPath("$state"), State.LOST.toString().toLowerCase().getBytes(), 1, true);
             client.connect(options);
 
-            if(broadcastReceiver != null) {
+            if (broadcastReceiver != null) {
                 IMqttMessageListener listener = new IMqttMessageListener() {
                     @Override
                     public void messageArrived(String topic, MqttMessage message) throws Exception {
@@ -267,7 +268,8 @@ public class Homie {
         if (client != null && client.isConnected()) {
             MqttMessage message = new MqttMessage();
             message.setRetained(retained);
-            message.setPayload(payload.getBytes());
+            message.setQos(1);
+            message.setPayload(payload.getBytes(UTF_8));
             try {
                 client.publish(buildPath(topic), message);
             } catch (MqttException e) {
@@ -299,7 +301,7 @@ public class Homie {
     }
 
     private void publishNodes() {
-        if(nodes.size() > 0) {
+        if (nodes.size() > 0) {
             String n = String.join(",", nodes.keySet());
             publish("$nodes", n, true);
 
@@ -337,7 +339,7 @@ public class Homie {
 
     private void disconnect() {
         try {
-            if(client.isConnected()) {
+            if (client.isConnected()) {
                 publish("$state", State.DISCONNECTED.toString().toLowerCase(), true);
                 client.disconnect();
             }
@@ -351,7 +353,7 @@ public class Homie {
      * Generates and registers a new node within Homie.
      */
     public Node createNode(String id, String type) {
-        if(!isValidTopicID(id)) {
+        if (!isValidTopicID(id)) {
             throw new IllegalArgumentException("Node id doesn't match homie's allowed topic ID pattern");
         }
 
@@ -375,6 +377,7 @@ public class Homie {
 
     /**
      * Sets the broadcastReceiver. Must be called prior to setup().
+     *
      * @param receiver the receiver to be notified
      */
     public void setBroadcastReceiver(BroadcastReceiver receiver) {
