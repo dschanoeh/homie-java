@@ -113,9 +113,7 @@ public class Homie {
                             previousState = State.DISCONNECTED;
                         }
                         Thread.sleep(configuration.getDisconnectRetry());
-                        if (connect()) {
-                            state = State.READY;
-                        }
+                        state = State.INIT;
                     default:
                         break;
                 }
