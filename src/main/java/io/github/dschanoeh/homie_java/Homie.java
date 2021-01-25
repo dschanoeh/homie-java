@@ -99,7 +99,9 @@ public class Homie {
                         break;
                     case READY:
                         if (previousState != State.READY) {
-                            publishStateUpdate();
+                            if (client.isConnected()) {
+                                publishStateUpdate();
+                            }
                             LOGGER.log(Level.INFO, "--> ready");
                             previousState = State.READY;
                         }
@@ -274,7 +276,7 @@ public class Homie {
                 LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
             }
         } else {
-            LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
+            LOGGER.log(Level.WARNING, String.format("Couldn't publish message to topic '%s' - not connected.", topic));
         }
     }
 
@@ -292,7 +294,7 @@ public class Homie {
                 return false;
             }
         } else {
-            LOGGER.log(Level.WARNING, "Couldn't publish message - not connected.");
+            LOGGER.log(Level.WARNING, String.format("Couldn't publish message to topic '%s' - not connected.", topic));
             return false;
         }
         return true;
