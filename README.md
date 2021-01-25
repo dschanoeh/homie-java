@@ -6,13 +6,12 @@
 
 A Java implementation of the Homie Convention (https://github.com/homieiot/convention).
 
-The implementation is WIP but already usable. The core features are implemented.
-
 Features that are currently supported:
 * Basic device behavior and state machine
 * Required homie attributes
 * Nodes and properties
 * Settable properties
+* Broadcasts
 
 Installation and Usage
 ====
