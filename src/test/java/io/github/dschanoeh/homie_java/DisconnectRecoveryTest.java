@@ -52,7 +52,6 @@ public class DisconnectRecoveryTest {
         PropertySetCallback listener = new PropertySetCallback() {
             @Override
             public void performSet(Property property, String value) {
-                System.out.println("hello");
                 if(value.equals(TEST_VALUE)) {
                     wasReceived[0] = true;
                 }
