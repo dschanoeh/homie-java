@@ -115,8 +115,8 @@ public class Property {
     }
 
     public void send(String value) {
-        if("".equals(value)) {
-            throw new UnsupportedOperationException("An empty string is not a valid value");
+        if("".equals(value) && this.dataType != DataType.STRING) {
+            throw new UnsupportedOperationException("An empty string is not a valid value for anything but STRING type");
         }
 
         if(this.dataType == DataType.STRING) {
@@ -218,9 +218,7 @@ public class Property {
         homie.publish(buildPath("/$name"), this.getName(), true);
         homie.publish(buildPath("/$settable"), Boolean.toString(settable), true);
 
-        if (DataType.STRING != dataType) {
-            homie.publish(buildPath("/$datatype"), dataType.toString().toLowerCase(), true);
-        }
+        homie.publish(buildPath("/$datatype"), dataType.toString().toLowerCase(), true);
 
         if(null != this.format && this.format !=  "") {
             homie.publish(buildPath("/$format"), this.format, true);
