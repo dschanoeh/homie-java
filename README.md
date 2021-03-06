@@ -1,5 +1,6 @@
 
-[![Travis (master)](https://travis-ci.com/dschanoeh/homie-java.svg?branch=master)](https://travis-ci.com/dschanoeh/homie-java)
+[![build](https://github.com/dschanoeh/homie-java/actions/workflows/build.yaml/badge.svg)](https://github.com/dschanoeh/homie-java/actions/workflows/build.yaml)
+![GitHub](https://img.shields.io/github/license/dschanoeh/homie-java)
 
 
 # homie-java
