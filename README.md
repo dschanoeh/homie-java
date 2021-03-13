@@ -1,11 +1,14 @@
 
 [![build](https://github.com/dschanoeh/homie-java/actions/workflows/build.yaml/badge.svg)](https://github.com/dschanoeh/homie-java/actions/workflows/build.yaml)
 ![GitHub](https://img.shields.io/github/license/dschanoeh/homie-java)
+[![codecov](https://codecov.io/gh/dschanoeh/homie-java/branch/master/graph/badge.svg?token=HGEB89UBV6)](https://codecov.io/gh/dschanoeh/homie-java)
 
 
 # homie-java
 
-A Java implementation of the Homie Convention (https://github.com/homieiot/convention).
+A Java implementation of the Homie Convention.
+
+[![works with MQTT Homie](https://homieiot.github.io/img/works-with-homie.png)](https://homieiot.github.io/)
 
 Features that are currently supported:
 * Basic device behavior and state machine
