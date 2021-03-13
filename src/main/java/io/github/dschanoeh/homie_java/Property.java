@@ -1,5 +1,8 @@
 package io.github.dschanoeh.homie_java;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -10,13 +13,13 @@ import java.util.logging.Logger;
 public class Property {
     private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 
-    private String name = "";
-    private final String id;
-    private boolean settable = false;
-    private boolean retained = true;
-    private String unit = "";
-    private String format = "";
-    private DataType dataType = DataType.STRING;
+    @Getter @Setter @NonNull private String name = "";
+    @Getter private final String id;
+    @Getter private boolean settable = false;
+    @Getter @Setter private boolean retained = true;
+    @Getter @Setter private String unit = "";
+    @Getter private String format = "";
+    @Getter private DataType dataType = DataType.STRING;
     private final Homie homie;
     private final Node node;
     private PropertySetCallback callback;
@@ -39,53 +42,15 @@ public class Property {
         this.homie = homie;
     }
 
-    public boolean isSettable() {
-        return settable;
-    }
-
-    public boolean isRetained() {
-        return retained;
-    }
-
-    public void setRetained(boolean retained) {
-        this.retained = retained;
-    }
-
     public void makeUnsettable() {
         this.settable = false;
-        homie.deregisterListener(node.getID() + "/" + this.getID() + "/$settable");
+        homie.deregisterListener(node.getId() + "/" + this.getId() + "/$settable");
     }
 
     public void makeSettable(PropertySetCallback callback) {
         this.settable = true;
         this.callback = callback;
-        homie.registerListener(node.getID() + "/" + this.getID() + "/set", setMessageListener);
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public String getID() {
-        return id;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        if(name != null) {
-            this.name = name;
-        }
-    }
-
-    public String getFormat() {
-        return format;
+        homie.registerListener(node.getId() + "/" + this.getId() + "/set", setMessageListener);
     }
 
     public void setFormat(String format) {
@@ -98,10 +63,6 @@ public class Property {
         } else {
             this.format = format;
         }
-    }
-
-    public DataType getDataType() {
-        return dataType;
     }
 
     public void setDataType(DataType dataType) {
@@ -184,7 +145,7 @@ public class Property {
             throw new IllegalArgumentException("Precision cannot be negative");
         }
 
-        String s = String.format("%." + String.valueOf(precision) + "f", value);
+        String s = String.format("%." + precision + "f", value);
         homie.publish(buildPath(""), s, this.isRetained());
     }
 
@@ -226,6 +187,6 @@ public class Property {
     }
 
     protected String buildPath(String topic) {
-        return node.getID() + "/" + this.getID() + topic;
+        return node.getId() + "/" + this.getId() + topic;
     }
 }

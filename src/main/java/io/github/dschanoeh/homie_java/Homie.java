@@ -1,5 +1,6 @@
 package io.github.dschanoeh.homie_java;
 
+import lombok.Getter;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -35,7 +36,7 @@ public class Homie {
     private final String firmwareVersion;
     private MqttClient client;
     private final MqttConnectOptions options;
-    private State state = State.INIT;
+    @Getter private State state = State.INIT;
     private State previousState = State.DISCONNECTED;
     private Thread stateMachineThread;
     private final ZonedDateTime bootTime = ZonedDateTime.now();
@@ -48,10 +49,6 @@ public class Homie {
     private final HashMap<String, Node> nodes = new HashMap<>();
     private final HashMap<String, IMqttMessageListener> listeners = new HashMap<>();
 
-
-    public State getState() {
-        return state;
-    }
 
     /**
      * Allows the user to supply a CPU temperature function that will be called

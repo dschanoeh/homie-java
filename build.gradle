@@ -15,6 +15,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.3'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
+    compileOnly 'org.projectlombok:lombok:1.18.18'
+    annotationProcessor 'org.projectlombok:lombok:1.18.18'
 }
 
 group = 'io.github.dschanoeh'

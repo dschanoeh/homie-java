@@ -1,5 +1,9 @@
 package io.github.dschanoeh.homie_java;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -7,34 +11,16 @@ public class Node {
 
     private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 
-    private String name = "";
-    private final String type;
-    private final String id;
+    @Getter @Setter @NonNull private String name = "";
+    @Getter private final String type;
+    @Getter private final String id;
     private final Homie homie;
     private final HashMap<String, Property> properties = new HashMap<>();
-
-    public String getName() {
-        return name;
-    }
-
-    public String getID() {
-        return id;
-    }
-
-    public String getType() {
-        return type;
-    }
 
     protected Node(Homie homie, String id, String type) {
         this.id = id;
         this.type = type;
         this.homie = homie;
-    }
-
-    public void setName(String name) {
-        if(name != null) {
-            this.name = name;
-        }
     }
 
     /**
@@ -72,15 +58,15 @@ public class Node {
      * Advertise supported properties
      */
     private void sendProperties() {
-        homie.publish(this.getID() + "/" + "$type", type, true);
+        homie.publish(this.getId() + "/" + "$type", type, true);
 
         if(properties.size() > 0) {
             String p = String.join(",", properties.keySet());
-            homie.publish(this.getID() + "/" + "$properties", p, true);
+            homie.publish(this.getId() + "/" + "$properties", p, true);
         } else {
-            homie.publish(this.getID() + "/" + "$properties", "", true);
+            homie.publish(this.getId() + "/" + "$properties", "", true);
         }
 
-        homie.publish(this.getID() + "/" + "$name", this.getName(), true);
+        homie.publish(this.getId() + "/" + "$name", this.getName(), true);
     }
 }
