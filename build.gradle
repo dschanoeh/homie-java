@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
     id "com.diffplug.spotless" version "5.11.0"
+    id "jacoco"
 }
 
 repositories {
@@ -20,8 +21,20 @@ group = 'io.github.dschanoeh'
 version = '0.1.2'
 sourceCompatibility = '1.8'
 
+jacocoTestReport {
+    dependsOn test
+}
+
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
 }
 
 shadowJar {
