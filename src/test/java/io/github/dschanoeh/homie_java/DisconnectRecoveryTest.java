@@ -1,11 +1,15 @@
 package io.github.dschanoeh.homie_java;
 
-import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
 import java.lang.reflect.Field;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -19,7 +23,7 @@ public class DisconnectRecoveryTest {
     private static final String TEST_NODE = "node";
     private static final String TEST_PROPERTY = "property";
 
-    private Homie homie;
+    private final Homie homie;
     private MqttClient client;
 
     public DisconnectRecoveryTest() {
@@ -32,7 +36,7 @@ public class DisconnectRecoveryTest {
 
     @BeforeEach
     void initializeClient() throws MqttException {
-        client = new MqttClient(TEST_BROKER_URL, "ClientID", new MemoryPersistence());
+        client = new MqttClient(TEST_BROKER_URL, MqttClient.generateClientId(), new MemoryPersistence());
         MqttConnectOptions options = new MqttConnectOptions();
         client.connect(options);
     }
@@ -45,7 +49,7 @@ public class DisconnectRecoveryTest {
 
     @Test
     public void disconnectFlowTest() throws InterruptedException, IllegalAccessException, MqttException {
-        final Boolean wasReceived[] = {false};
+        final Boolean[] wasReceived = {false};
 
         Node node = homie.createNode(TEST_NODE, "type");
         Property property = node.getProperty(TEST_PROPERTY);
@@ -67,7 +71,7 @@ public class DisconnectRecoveryTest {
         /* Fiddle with reflection to access the internal MQTT client */
         MqttClient homieInternalMQTTClient = null;
         Class<?> homieClass = homie.getClass();
-        Field fields[] = homieClass.getDeclaredFields();
+        Field[] fields = homieClass.getDeclaredFields();
         for(Field f: fields) {
             if(f.getName() == "client") {
                 f.setAccessible(true);

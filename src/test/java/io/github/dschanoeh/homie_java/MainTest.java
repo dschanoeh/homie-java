@@ -1,7 +1,13 @@
 package io.github.dschanoeh.homie_java;
+
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MainTest {
@@ -21,10 +27,13 @@ public class MainTest {
     private static final String TEST_COLOR_FORMAT = "rgb";
     private static final String TEST_ENUM_PROPERTY = "test-enum-property";
     private static final String TEST_ENUM_VALUE_STRING = "bar";
+    private static final String TEST_INTEGER_PROPERTY = "test-integer-property";
+    private static final Integer TEST_INTEGER_VALUE = -123456;
     private static final String TEST_ENUM_FORMAT = "foo,bar";
     private static final String TEST_FALSE_ENUM_VALUE_STRING = "baz";
     private static final String TEST_BROADCAST_TOPIC = "testBroadcast";
     private static final String TEST_BROADCAST_PAYLOAD = "alert!";
+    private static final Integer STATS_INTERVAL = 1000;
 
     private final Homie homie;
     private MqttClient client;
@@ -34,6 +43,7 @@ public class MainTest {
         c.setBrokerUrl(TEST_BROKER_URL);
         c.setDeviceID(DEVICE_ID);
         c.setDeviceName(DEVICE_NAME);
+        c.setStatsInterval(STATS_INTERVAL);
         homie = new Homie(c, FIRMWARE_NAME, FIRMWARE_VERSION);
     }
 
@@ -230,7 +240,7 @@ public class MainTest {
 
     @Test
     void testPropertyTypes() throws MqttException, InterruptedException {
-        final Boolean[] wasReceived = {false, false, false, false, false, false, false};
+        final Boolean[] wasReceived = {false, false, false, false, false, false, false, false};
 
         Double TEST_VAL_1 = 0.1;
         Boolean TEST_VAL_2 = false;
@@ -314,6 +324,18 @@ public class MainTest {
             }
         };
 
+        IMqttMessageListener integerValueListener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+                String payload = new String(message.getPayload());
+                Integer value = Integer.valueOf(payload);
+                if(value.equals(TEST_INTEGER_VALUE)) {
+                    wasReceived[7] = true;
+                }
+            }
+        };
+
         assert client.isConnected();
         assert homie.getState() == Homie.State.INIT;
 
@@ -324,6 +346,7 @@ public class MainTest {
         String val1DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "/$datatype";
         String val2DatatypeTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_PROPERTY + "2" + "/$datatype";
         String enumValTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_ENUM_PROPERTY;
+        String integerValTopic = "homie/" + DEVICE_ID + "/" + TEST_NODE + "/" + TEST_INTEGER_PROPERTY;
 
 
         client.subscribe(val1Topic, val1Listener);
@@ -333,6 +356,7 @@ public class MainTest {
         client.subscribe(colorValTopic, colorValueListener);
         client.subscribe(colorFormatTopic, colorFormatListener);
         client.subscribe(enumValTopic, enumValueListener);
+        client.subscribe(integerValTopic, integerValueListener);
 
         Node node = homie.createNode(TEST_NODE, TEST_NODE_TYPE);
         node.setName(TEST_NODE_NAME);
@@ -352,6 +376,9 @@ public class MainTest {
         enumProperty.setDataType(Property.DataType.ENUM);
         enumProperty.setFormat(TEST_ENUM_FORMAT);
 
+        Property integerProperty = node.getProperty(TEST_INTEGER_PROPERTY);
+        integerProperty.setDataType(Property.DataType.INTEGER);
+
         homie.setup();
 
         while(homie.getState() != Homie.State.READY) {
@@ -362,33 +389,23 @@ public class MainTest {
         property2.send(TEST_VAL_2);
         colorProperty.send(1,2,3);
         enumProperty.send(TEST_ENUM_VALUE_STRING);
+        integerProperty.send(TEST_INTEGER_VALUE);
 
         /* Test sending with an illegal datatype */
-        Boolean exceptionThrown = false;
-        try {
+        assertThrows(UnsupportedOperationException.class, () -> {
             property2.send(TEST_VAL_1);
-        } catch (Exception ex) {
-            exceptionThrown = true;
-        }
-        assert exceptionThrown;
+        });
 
         /* Test color out of range  */
-        Boolean exception2Thrown = false;
-        try {
+        assertThrows(IllegalArgumentException.class, () -> {
             colorProperty.send(10,10,256);
-        } catch (Exception ex) {
-            exception2Thrown = true;
-        }
-        assert exception2Thrown;
+        });
+        Boolean exception2Thrown = false;
 
         /* Test enum out of range  */
-        Boolean exception3Thrown = false;
-        try {
+        assertThrows(UnsupportedOperationException.class, () -> {
             enumProperty.send(TEST_FALSE_ENUM_VALUE_STRING);
-        } catch (Exception ex) {
-            exception3Thrown = true;
-        }
-        assert exception3Thrown;
+        });
 
         Thread.sleep(100);
 
@@ -399,6 +416,7 @@ public class MainTest {
         assert wasReceived[4];
         assert wasReceived[5];
         assert wasReceived[6];
+        assert wasReceived[7];
     }
 
     @Test
@@ -437,5 +455,28 @@ public class MainTest {
         Thread.sleep(50);
 
         assert broadcastReceived[0];
+    }
+
+    @Test
+    void statsTest() throws MqttException, InterruptedException {
+        final boolean[] statsReceived = {false};
+
+        IMqttMessageListener listener = new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                statsReceived[0] = true;
+            }
+        };
+
+        String uptimeTopic = "homie/" + DEVICE_ID + "/$stats/uptime";
+        client.subscribe(uptimeTopic, listener);
+
+        homie.setup();
+        while(homie.getState() != Homie.State.READY) {
+            Thread.sleep(50);
+        }
+        Thread.sleep(STATS_INTERVAL);
+
+        assert statsReceived[0];
     }
 }
