@@ -7,6 +7,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Function;
@@ -20,7 +21,7 @@ import static org.eclipse.paho.client.mqttv3.MqttConnectOptions.MAX_INFLIGHT_DEF
 
 public class Homie {
 
-    private final static Logger LOGGER = Logger.getLogger(Homie.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Homie.class.getName());
 
     private static final String HOMIE_CONVENTION = "4.0.0";
     private static final String IMPLEMENTATION = "java";
@@ -113,6 +114,7 @@ public class Homie {
                         }
                         Thread.sleep(configuration.getDisconnectRetry());
                         state = State.INIT;
+                        break;
                     default:
                         break;
                 }
@@ -160,12 +162,11 @@ public class Homie {
     }
 
     private void subscribeListeners() {
-        for (String topic : listeners.keySet()) {
-            IMqttMessageListener listener = listeners.get(topic);
+        for (Map.Entry<String, IMqttMessageListener> entry : listeners.entrySet()) {
             try {
-                client.subscribe(buildPath(topic), listener);
+                client.subscribe(buildPath(entry.getKey()), entry.getValue());
             } catch (MqttException ex) {
-                LOGGER.log(Level.WARNING, "Was not able to subscribe listener for topic " + topic, ex);
+                LOGGER.log(Level.WARNING, String.format("Was not able to subscribe listener for topic '%s'", entry.getKey()), ex);
             }
         }
     }
@@ -273,7 +274,7 @@ public class Homie {
                 LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
             }
         } else {
-            LOGGER.log(Level.WARNING, String.format("Couldn't publish message to topic '%s' - not connected.", topic));
+            LOGGER.log(Level.WARNING, () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
         }
     }
 
@@ -291,7 +292,7 @@ public class Homie {
                 return false;
             }
         } else {
-            LOGGER.log(Level.WARNING, String.format("Couldn't publish message to topic '%s' - not connected.", topic));
+            LOGGER.log(Level.WARNING, () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
             return false;
         }
         return true;

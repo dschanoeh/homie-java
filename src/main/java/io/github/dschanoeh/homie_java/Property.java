@@ -8,10 +8,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class Property {
-    private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 
     @Getter @Setter @NonNull private String name = "";
     @Getter private final String id;
@@ -83,7 +81,7 @@ public class Property {
         if(this.dataType == DataType.STRING) {
             homie.publish(buildPath(""), value, this.isRetained());
         } else if(this.dataType == DataType.ENUM) {
-            if(this.enumValues == null || this.enumValues.size() == 0) {
+            if(this.enumValues == null || this.enumValues.isEmpty()) {
                 throw new UnsupportedOperationException("Trying to send enum value but no list of enum values was provided as format");
             } else if(this.enumValues.stream().anyMatch(s -> s.equals(value))) {
                 homie.publish(buildPath(""), value, this.isRetained());
@@ -181,7 +179,7 @@ public class Property {
 
         homie.publish(buildPath("/$datatype"), dataType.toString().toLowerCase(), true);
 
-        if(null != this.format && this.format !=  "") {
+        if(null != this.format && !this.format.equals("")) {
             homie.publish(buildPath("/$format"), this.format, true);
         }
     }

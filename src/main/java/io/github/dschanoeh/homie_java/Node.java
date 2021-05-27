@@ -5,11 +5,8 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 public class Node {
-
-    private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 
     @Getter @Setter @NonNull private String name = "";
     @Getter private final String type;
