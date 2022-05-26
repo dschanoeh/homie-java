@@ -15,14 +15,14 @@ public class Configuration {
     @Getter @Setter private Integer disconnectRetry = 2000;
 
     public void setDeviceID(String name) {
-        if(!Homie.isValidTopicID(name)) {
+        if(Boolean.FALSE.equals(Homie.isValidTopicID(name))) {
             throw new IllegalArgumentException("Device ID doesn't match homie's allowed topic ID pattern");
         }
         this.deviceID = name;
     }
 
     public void setBaseTopic(String baseTopic) {
-        if(!Homie.isValidTopicID(baseTopic)) {
+        if(Boolean.FALSE.equals(Homie.isValidTopicID(baseTopic))) {
             throw new IllegalArgumentException("Device ID doesn't match homie's allowed topic ID pattern");
         }
 

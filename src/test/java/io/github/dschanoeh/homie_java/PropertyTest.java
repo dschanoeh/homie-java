@@ -15,7 +15,7 @@ public class PropertyTest {
     }
 
     @Test
-    public void setName() {
+    void setName() {
         Node n = new Node(homie, "node", "node");
         Property p = n.getProperty("property");
         assertThrows(NullPointerException.class, () -> {
@@ -24,7 +24,7 @@ public class PropertyTest {
     }
 
     @Test
-    public void sendNaN() {
+    void sendNaN() {
         Node n = new Node(homie, "node", "node");
         Property p = n.getProperty("property");
         p.setDataType(Property.DataType.FLOAT);

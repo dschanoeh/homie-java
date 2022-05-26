@@ -225,7 +225,7 @@ public class Homie {
             statsTimer.scheduleAtFixedRate(statsTask, configuration.getStatsInterval(), configuration.getStatsInterval());
             return true;
         } catch (MqttException e) {
-            LOGGER.log(Level.SEVERE, "Couldn't connect", e);
+            LOGGER.log(Level.SEVERE, "Could not connect", e);
             return false;
         }
     }
@@ -271,7 +271,7 @@ public class Homie {
             try {
                 client.publish(buildPath(topic), message);
             } catch (MqttException e) {
-                LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
+                LOGGER.log(Level.SEVERE, "Could not publish message", e);
             }
         } else {
             LOGGER.log(Level.WARNING, () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
@@ -288,7 +288,7 @@ public class Homie {
             try {
                 client.publish(topic, message);
             } catch (MqttException e) {
-                LOGGER.log(Level.SEVERE, "Couldn't publish message", e);
+                LOGGER.log(Level.SEVERE, "Could not publish message", e);
                 return false;
             }
         } else {
@@ -351,7 +351,7 @@ public class Homie {
      * Generates and registers a new node within Homie.
      */
     public Node createNode(String id, String type) {
-        if (!isValidTopicID(id)) {
+        if (Boolean.FALSE.equals(isValidTopicID(id))) {
             throw new IllegalArgumentException("Node id doesn't match homie's allowed topic ID pattern");
         }
 

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.TestInstance;
 import java.lang.reflect.Field;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DisconnectRecoveryTest {
+class DisconnectRecoveryTest {
     private static final String FIRMWARE_NAME = "TestFirmware";
     private static final String FIRMWARE_VERSION = "1.0";
     private static final String DEVICE_ID = "device";
@@ -48,7 +48,7 @@ public class DisconnectRecoveryTest {
     }
 
     @Test
-    public void disconnectFlowTest() throws InterruptedException, IllegalAccessException, MqttException {
+    void disconnectFlowTest() throws InterruptedException, IllegalAccessException, MqttException {
         final Boolean[] wasReceived = {false};
 
         Node node = homie.createNode(TEST_NODE, "type");

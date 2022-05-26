@@ -25,7 +25,7 @@ public class Node {
      * with the specified name.
      */
     public Property getProperty(String id) {
-        if(!Homie.isValidTopicID(id)) {
+        if(Boolean.FALSE.equals(Homie.isValidTopicID(id))) {
             throw new IllegalArgumentException("Property name doesn't match homie's allowed topic ID pattern");
         }
 
