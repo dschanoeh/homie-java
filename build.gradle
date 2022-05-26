@@ -1,8 +1,8 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
-    id "com.diffplug.spotless" version "5.11.0"
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id "com.diffplug.spotless" version "6.6.1"
     id "jacoco"
 }
 
@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.3'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
@@ -34,8 +34,8 @@ test {
 
 jacocoTestReport {
     reports {
-        xml.enabled = true
-        html.enabled = true
+        xml.required = true
+        html.required = true
     }
 }
 
