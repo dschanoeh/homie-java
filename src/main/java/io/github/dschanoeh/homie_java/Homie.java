@@ -37,7 +37,8 @@ public class Homie {
     private final String firmwareVersion;
     private MqttClient client;
     private final MqttConnectOptions options;
-    @Getter private State state = State.INIT;
+    @Getter
+    private State state = State.INIT;
     private State previousState = State.DISCONNECTED;
     private Thread stateMachineThread;
     private final ZonedDateTime bootTime = ZonedDateTime.now();
@@ -49,7 +50,6 @@ public class Homie {
 
     private final HashMap<String, Node> nodes = new HashMap<>();
     private final HashMap<String, IMqttMessageListener> listeners = new HashMap<>();
-
 
     /**
      * Allows the user to supply a CPU temperature function that will be called
@@ -102,6 +102,18 @@ public class Homie {
                             }
                             LOGGER.log(Level.INFO, "--> ready");
                             previousState = State.READY;
+                        }
+                        if (!client.isConnected()) {
+                            state = State.DISCONNECTED;
+                        }
+                        break;
+                    case ALERT:
+                        if (previousState != State.ALERT) {
+                            if (client.isConnected()) {
+                                publishStateUpdate();
+                            }
+                            LOGGER.log(Level.INFO, "--> alert");
+                            previousState = State.ALERT;
                         }
                         if (!client.isConnected()) {
                             state = State.DISCONNECTED;
@@ -166,7 +178,8 @@ public class Homie {
             try {
                 client.subscribe(buildPath(entry.getKey()), entry.getValue());
             } catch (MqttException ex) {
-                LOGGER.log(Level.WARNING, String.format("Was not able to subscribe listener for topic '%s'", entry.getKey()), ex);
+                LOGGER.log(Level.WARNING,
+                        String.format("Was not able to subscribe listener for topic '%s'", entry.getKey()), ex);
             }
         }
     }
@@ -190,9 +203,12 @@ public class Homie {
                 options.setUserName(configuration.getBrokerUsername());
             }
 
-            /* If the user didn't set a custom MaxInFlight, we'll try to pick a good default */
+            /*
+             * If the user didn't set a custom MaxInFlight, we'll try to pick a good default
+             */
             if (options.getMaxInflight() == MAX_INFLIGHT_DEFAULT) {
-                options.setMaxInflight(Math.max(MAX_INFLIGHT_DEFAULT, nodes.values().stream().mapToInt(Node::getPropCount).sum() * 2));
+                options.setMaxInflight(
+                        Math.max(MAX_INFLIGHT_DEFAULT, nodes.values().stream().mapToInt(Node::getPropCount).sum() * 2));
             }
 
             /* Last will will be used in case of an ungraceful disconnect */
@@ -222,7 +238,8 @@ public class Homie {
                 }
             };
 
-            statsTimer.scheduleAtFixedRate(statsTask, configuration.getStatsInterval(), configuration.getStatsInterval());
+            statsTimer.scheduleAtFixedRate(statsTask, configuration.getStatsInterval(),
+                    configuration.getStatsInterval());
             return true;
         } catch (MqttException e) {
             LOGGER.log(Level.SEVERE, "Could not connect", e);
@@ -274,7 +291,8 @@ public class Homie {
                 LOGGER.log(Level.SEVERE, "Could not publish message", e);
             }
         } else {
-            LOGGER.log(Level.WARNING, () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
+            LOGGER.log(Level.WARNING,
+                    () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
         }
     }
 
@@ -292,7 +310,8 @@ public class Homie {
                 return false;
             }
         } else {
-            LOGGER.log(Level.WARNING, () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
+            LOGGER.log(Level.WARNING,
+                    () -> String.format("Couldn't publish message to topic '%s' - not connected.", topic));
             return false;
         }
         return true;
@@ -315,6 +334,28 @@ public class Homie {
 
     private String getBroadcastPath() {
         return configuration.getBaseTopic() + "/" + "$broadcast" + "/";
+    }
+
+    public void setAlert(boolean alertStatus) {
+        if (alertStatus) {
+            if (state == State.READY) {
+                previousState = state;
+                state = State.ALERT;
+            } else if (state == State.ALERT) {
+                LOGGER.log(Level.FINE, "Homie device is already in \"alert\" state.");
+            } else {
+                LOGGER.log(Level.WARNING, "An \"alert\" state can be reached only from \"ready\" state.");
+            }
+        } else {
+            if (state == State.ALERT) {
+                previousState = state;
+                state = State.READY;
+            } else if (state == State.READY) {
+                LOGGER.log(Level.FINE, "Homie device is already in \"ready\" state.");
+            } else {
+                LOGGER.log(Level.WARNING, "An \"alert\" state can be disabled only from \"alert\" state.");
+            }
+        }
     }
 
     public void shutdown() {
@@ -363,7 +404,6 @@ public class Homie {
             return n;
         }
     }
-
 
     /**
      * Checks if a given topic ID is valid
